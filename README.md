@@ -1,2 +1,2 @@
-# gender-neutral-captioning
+# Gender-Neutral-Captioning
 Correcting Gender Bias in Captioning Model
