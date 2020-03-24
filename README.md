@@ -18,15 +18,15 @@ $ pipenv install --dev
 ```
 3. Download the following data from the COCO website(http://cocodataset.org/#download) into the cocoapi subdirectory located inside this project's directory.
 
-Under **Annotations**, download:
-- 2014 Train/Val annotations [241MB]
-- 2014 Testing Image info [1MB]
-By completion, the subdirectory `cocoapi/annotations/` should contain 5 files: `captions_train2014.json`, `captions_val2014.json`, `instanes_train2014.json`, `instances_val2014.json`, `image_info_test2014.json`.
+- Under **Annotations**, download:
+  - 2014 Train/Val annotations [241MB]
+  - 2014 Testing Image info [1MB]
+  By completion, the subdirectory `cocoapi/annotations/` should contain 5 files: `captions_train2014.json`, `captions_val2014.json`, `instanes_train2014.json`, `instances_val2014.json`, `image_info_test2014.json`.
 
-Under **Images**, download:
-- 2014 Train images [13GB]
-- 2014 Val images [6GB]
-- 2014 Test images [6GB]
-By completion, the subdirectory `cocoapi/images/` should contain 3 folders, `train2014`, `val2014` and `test2014`.
+- Under **Images**, download:
+  - 2014 Train images [13GB]
+  - 2014 Val images [6GB]
+  - 2014 Test images [6GB]
+  By completion, the subdirectory `cocoapi/images/` should contain 3 folders, `train2014`, `val2014` and `test2014`.
 
 4. Download pretrained ResNet-152 weights pretrained on Imagenet.
