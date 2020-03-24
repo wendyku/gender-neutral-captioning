@@ -1,9 +1,9 @@
 # Correcting Gender Bias in Captioning Model
 
-### Motivation
+## Motivation
 Our project discusses and tackles gender bias in captioning models, so that the image captions will be neutral of gender stereotypes. Specifically, this project 1) identifies types of gender bias in the captioning model, 2) experiments with different methods in reducing gender bias and 3) interprets the success of the final model. We also aim at building an inclusive captioning model that can distinguish not only the gender binary (ie. man or woman) but also a third category (ie. person) based on visual appearance.
 
-### Environment and Data Set up
+## Environment and Data Set up
 1. Clone the COCO API Repo (https://github.com/cocodataset/cocoapi) and set up the API
 ```
 git clone https://github.com/cocodataset/cocoapi.git
