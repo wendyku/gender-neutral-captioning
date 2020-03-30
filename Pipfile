@@ -7,6 +7,17 @@ verify_ssl = true
 
 [packages]
 opencv-python = "*"
+boost-py = "*"
+numpy = "*"
+jupyter = "*"
+notebook = "*"
+nltk = "*"
+nbdime = "*"
+scikit-learn = "*"
+matplotlib = "*"
+scipy = "*"
+torch = "*"
+torchvision = "*"
 
 [requires]
 python_version = "3.7"
