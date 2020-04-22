@@ -393,3 +393,77 @@ def train_test_split(training_image_ids, test_size = 0.3, random_state = 123):
         gender_train, gender_test = y[train_idx], y[test_idx]
     return train_image_ids, test_image_ids, gender_train, gender_test
     # Output X: list of image ids, Y: gender class of test and train images
+
+def get_test_indices(training_image_ids, sample_size, mode = 'random'):
+    '''
+    training_image_ids: image ids used in training or validation while training the model
+    sample_size: # of image ids needed
+    ''' 
+    assert mode in ['random','balanced_mode','balanced_clean']
+    assert isinstance(sample_size, int)
+
+    random.seed(123)
+    test_captions_dict = dict()
+
+    # Get pre-processed objects
+    im_gender_summary = load_obj('im_gender_summary')
+    captions_dict = load_obj('captions_dict')
+
+    if mode == 'random':
+        i = 0
+        for image_id in im_gender_summary.keys():
+            if i < sample_size:
+                if image_id not in training_image_ids:
+                    test_captions_dict[image_id] = captions_dict[image_id]
+                    i += 1
+        
+    elif mode == 'balanced_mode':
+        i = 0
+        male_count = 0
+        female_count = 0
+        neutral_count = 0
+        for image_id in im_gender_summary.keys():
+            if i < sample_size:
+                if image_id not in training_image_ids:
+                    if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < sample_size / 3):
+                        test_captions_dict[image_id] = captions_dict[image_id]
+                        male_count += 1
+                        i += 1
+                    elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < sample_size / 3):
+                        test_captions_dict[image_id] = captions_dict[image_id]
+                        female_count += 1
+                        i += 1
+                    elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < sample_size / 3):
+                        test_captions_dict[image_id] = captions_dict[image_id]
+                        neutral_count += 1
+                        i += 1
+                    
+                if i % 1000 == 0:
+                    print(f"captions of {i} images are added")
+    
+    elif mode == 'balanced_clean':
+        i = 0
+        male_count = 0
+        female_count = 0
+        neutral_count = 0
+        for image_id in im_gender_summary.keys():
+            if i < sample_size:
+                if image_id not in training_image_ids:
+                    if im_gender_summary[image_id]['clean_gender'] == 1:
+                        if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < sample_size / 3):
+                            test_captions_dict[image_id] = captions_dict[image_id]
+                            male_count += 1
+                            i += 1
+                        elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < sample_size / 3):
+                            test_captions_dict[image_id] = captions_dict[image_id]
+                            female_count += 1
+                            i += 1
+                        elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < sample_size / 3):
+                            test_captions_dict[image_id] = captions_dict[image_id]
+                            neutral_count += 1
+                            i += 1
+                        
+                    if i % 1000 == 0:
+                        print(f"captions of {i} images are added")
+                        
+    return test_captions_dict

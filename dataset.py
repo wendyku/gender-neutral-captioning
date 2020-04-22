@@ -11,17 +11,23 @@ from utils import load_obj
 from Vocabulary import Vocabulary
 
 class MyDataset(Dataset):
+    '''
+    sample_size : # of images to be used 
+    '''
     
-    def __init__(self, image_folder_path, mode = 'train', sample_size = 100,
-              vocab_threshold = 5, batch_size = 10):
+    def __init__(self, image_ids, image_folder_path, mode = 'train', vocab_threshold = 5, batch_size = 10):
         assert mode in ['train', 'val', 'test']
         
         self.mode = mode
         self.image_folder_path = image_folder_path
         self.batch_size = batch_size
         
+        # Get pre-processed objects
+        all_captions_dict = load_obj('captions_dict')
+        captions_dict = { image_id: all_captions_dict[image_id] for image_id in image_ids } # only include selected subset of captions
+        
         # Obtain sample of training images
-        self.training_image_ids, captions_dict = get_training_indices(sample_size = sample_size, mode = "balanced_clean")
+        #self.training_image_ids, captions_dict = get_training_indices(sample_size = sample_size, mode = "balanced_clean")
         
         # self.training_image_ids, self.images_path, self.image_id_dict, captions_dict \
         # = get_data(image_folder_path, annotations_path, sample_size, data_type)
@@ -37,7 +43,7 @@ class MyDataset(Dataset):
             print('Vocabulary successfully loaded')
         
         # Set up dataset
-        self.im_ids = []
+        self.im_ids = [] # with duplicates for indexing, i.e. if caption 1-5 all correspond to image 8, the im_ids will be [8,8,8,8,8]
         self.captions = []
         self.images = []
         self.captions_len = []
