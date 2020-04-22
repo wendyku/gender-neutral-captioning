@@ -41,7 +41,7 @@ class Vocabulary(object):
             tokens = nltk.tokenize.word_tokenize(caption.lower())
             counter.update(tokens)
             
-            if i % 100 == 0:
+            if i % 1000 == 0:
                 print(f"Tokenize captions: {i, len(self.captions)}")
         
         for word, count in counter.items():

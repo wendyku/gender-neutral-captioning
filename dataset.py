@@ -9,6 +9,7 @@ from PIL import Image
 from data_utils import get_training_indices
 from utils import load_obj
 from Vocabulary import Vocabulary
+import sys
 
 class MyDataset(Dataset):
     '''
@@ -52,6 +53,7 @@ class MyDataset(Dataset):
                 self.im_ids.append(im_id)
                 self.captions.append(item)
                 self.captions_len.append(len(nltk.tokenize.word_tokenize(item)))
+        print(self.im_ids[:10], self.captions[:10], image_ids[:10])
         
         # Set up paramteres for image feature extraction 
         self.transform = transforms.Compose([
@@ -74,6 +76,7 @@ class MyDataset(Dataset):
                 image = Image.open(self.image_folder_path + "val2014/COCO_val2014_" + "0"* (12-l) + str(im_id) + '.jpg').convert("RGB")
             except:
                 print(f"Image file {im_id} cannot be located")
+                sys.exit(1)
                 pass
 
         if self.mode == "train" or self.mode == 'val':
