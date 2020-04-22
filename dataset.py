@@ -8,36 +8,32 @@ from torch.utils.data import DataLoader
 from PIL import Image
 from data_utils import get_training_indices
 from utils import load_obj
-import Vocabulary
+from Vocabulary import Vocabulary
 
 class MyDataset(Dataset):
     
-    def __init__(self, image_folder_path, annotation_path, mode = 'train', sample_size = 100,
+    def __init__(self, image_folder_path, mode = 'train', sample_size = 100,
               vocab_threshold = 5, batch_size = 10):
         assert mode in ['train', 'val', 'test']
         
+        self.mode = mode
         self.image_folder_path = image_folder_path
         self.batch_size = batch_size
         
         # Obtain sample of training images
-        training_image_ids, training_captions_dict = get_training_indices(training_size = training_size, mode = "balanced_clean")
+        self.training_image_ids, captions_dict = get_training_indices(sample_size = sample_size, mode = "balanced_clean")
         
-        
-        
-        
-        self.training_image_ids, self.images_path, self.image_id_dict, captions_dict \
-        = get_data(image_folder_path, annotations_path, sample_size, data_type)
+        # self.training_image_ids, self.images_path, self.image_id_dict, captions_dict \
+        # = get_data(image_folder_path, annotations_path, sample_size, data_type)
 
-        self.training_image_ids, self.training_captions_dict = get_training_indices()
-        
         # Set up vocabulary or load from training set
-        if self.data_type == 'train':
+        if self.mode == 'train':
             self.vocab = Vocabulary(captions_dict)
             print('Vocabulary successfully created')
         else:
-            self.vocab = load_obj(vocab)
-            self.word2idx = vocab.word2idx
-            self.idx2word = vocab.idx2word
+            self.vocab = load_obj("vocab")
+            self.word2idx = self.vocab.word2idx
+            self.idx2word = self.vocab.idx2word
             print('Vocabulary successfully loaded')
         
         # Set up dataset
@@ -61,21 +57,39 @@ class MyDataset(Dataset):
         ])
     
     def __getitem__(self, index):
-        im_id = self.im_ids[index]
+        im_id = self.im_ids[index] 
+        l = len(str(im_id)) # for recreating the file name
+
+        # Locate the image file in train or val
+        try:
+            image = Image.open(self.image_folder_path + "train2014/COCO_train2014_"+ "0"* (12-l) + str(im_id) + '.jpg').convert("RGB")
+        except:
+            try:
+                image = Image.open(self.image_folder_path + "val2014/COCO_val2014_" + "0"* (12-l) + str(im_id) + '.jpg').convert("RGB")
+            except:
+                print(f"Image file {im_id} cannot be located")
+                pass
+
+        if self.mode == "train" or self.mode == 'val':
+            # Convert image to tensor
+            image = self.transform(image)
+            
+            # Tokenize captions
+            tokens = nltk.tokenize.word_tokenize(str(self.captions[index]).lower())
+            caption = []
+            caption.append(self.vocab(self.vocab.start_word))
+            caption.extend([self.vocab(token) for token in tokens])
+            caption.append(self.vocab(self.vocab.end_word))
+            caption = torch.Tensor(caption).long()
         
-        # Convert image to tensor
-        image = Image.open(self.image_folder_path + f"{self.data_type}2014/"+ self.image_id_dict[im_id]).convert("RGB")
-        image = self.transform(image)
+            return image, caption
+
+        else: # if mode is test, return original and transformed image
+            original_image = np.array(image)
+            transformed_image = self.transform(image)
         
-        # Tokenize captions
-        tokens = nltk.tokenize.word_tokenize(str(self.captions[index]).lower())
-        caption = []
-        caption.append(self.vocab(self.vocab.start_word))
-        caption.extend([self.vocab(token) for token in tokens])
-        caption.append(self.vocab(self.vocab.end_word))
-        caption = torch.Tensor(caption).long()
-        
-        return image, caption
+            return original_image, transformed_image
+
     
     def get_indices(self):
         search_len = np.random.choice(self.captions_len)

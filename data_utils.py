@@ -181,10 +181,10 @@ def get_qualified_dataset(annotations_path, save_file = False):
     else:
         return captions_dict, im_gender_summary
 
-def get_training_indices(training_size, mode = 'random'):
+def get_training_indices(sample_size, mode = 'random'):
     assert mode in ['random','balanced_mode','balanced_clean', 'balanced_gender_only', \
                     'balanced_clean_noun', 'clean_noun', 'activity_balanced', 'activity_balanced_clean']
-    assert isinstance(training_size, int)
+    assert isinstance(sample_size, int)
     '''
     8 different modes of generating data
     - random: randomized selection of qualified images
@@ -198,7 +198,7 @@ def get_training_indices(training_size, mode = 'random'):
     - activity_balanced: from activity tagged image sets, choose same ratio of male, female, neutral image
     - activity_balanced_clean: similar to activity_balanced, but all captions must agree on the same gender
     
-    Note that it is possible that output size may be smaller than training_size,
+    Note that it is possible that output size may be smaller than sample_size,
     especially for activity_balanced and activity_balanced_clean. As for certain activities, the sample size of
     clean data might be limited for some classes, e.g. women wearing tie.
     '''
@@ -212,7 +212,7 @@ def get_training_indices(training_size, mode = 'random'):
     activity_image_ids = load_obj('activity_image_ids')
     
     if mode == 'random':
-        training_captions_dict = dict(random.sample(captions_dict.items(), training_size))
+        training_captions_dict = dict(random.sample(captions_dict.items(), sample_size))
         
     elif mode == 'balanced_mode':
         i = 0
@@ -220,16 +220,16 @@ def get_training_indices(training_size, mode = 'random'):
         female_count = 0
         neutral_count = 0
         for image_id in im_gender_summary.keys():
-            if i < training_size:
-                if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < training_size / 3):
+            if i < sample_size:
+                if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < sample_size / 3):
                     training_captions_dict[image_id] = captions_dict[image_id]
                     male_count += 1
                     i += 1
-                elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < training_size / 3):
+                elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < sample_size / 3):
                     training_captions_dict[image_id] = captions_dict[image_id]
                     female_count += 1
                     i += 1
-                elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < training_size / 3):
+                elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < sample_size / 3):
                     training_captions_dict[image_id] = captions_dict[image_id]
                     neutral_count += 1
                     i += 1
@@ -243,17 +243,17 @@ def get_training_indices(training_size, mode = 'random'):
         female_count = 0
         neutral_count = 0
         for image_id in im_gender_summary.keys():
-            if i < training_size:
+            if i < sample_size:
                 if im_gender_summary[image_id]['clean_gender'] == 1:
-                    if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < training_size / 3):
+                    if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < sample_size / 3):
                         training_captions_dict[image_id] = captions_dict[image_id]
                         male_count += 1
                         i += 1
-                    elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < training_size / 3):
+                    elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < sample_size / 3):
                         training_captions_dict[image_id] = captions_dict[image_id]
                         female_count += 1
                         i += 1
-                    elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < training_size / 3):
+                    elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < sample_size / 3):
                         training_captions_dict[image_id] = captions_dict[image_id]
                         neutral_count += 1
                         i += 1
@@ -267,17 +267,17 @@ def get_training_indices(training_size, mode = 'random'):
         female_count = 0
         neutral_count = 0
         for image_id in im_gender_summary.keys():
-            if i < training_size:
+            if i < sample_size:
                 if im_gender_summary[image_id]['clean_noun'] == 1:
-                    if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < training_size / 3):
+                    if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < sample_size / 3):
                         training_captions_dict[image_id] = captions_dict[image_id]
                         male_count += 1
                         i += 1
-                    elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < training_size / 3):
+                    elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < sample_size / 3):
                         training_captions_dict[image_id] = captions_dict[image_id]
                         female_count += 1
                         i += 1
-                    elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < training_size / 3):
+                    elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < sample_size / 3):
                         training_captions_dict[image_id] = captions_dict[image_id]
                         neutral_count += 1
                         i += 1
@@ -288,7 +288,7 @@ def get_training_indices(training_size, mode = 'random'):
     elif mode == 'clean_noun':
         i = 0
         for image_id in im_gender_summary.keys():
-            if i < training_size:
+            if i < sample_size:
                 if im_gender_summary[image_id]['clean_noun'] == 1:
                     training_captions_dict[image_id] = captions_dict[image_id]
                     i += 1
@@ -301,12 +301,12 @@ def get_training_indices(training_size, mode = 'random'):
         male_count = 0
         female_count = 0
         for image_id in im_gender_summary.keys():
-            if i < training_size:
-                if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < training_size / 2):
+            if i < sample_size:
+                if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < sample_size / 2):
                     training_captions_dict[image_id] = captions_dict[image_id]
                     male_count += 1
                     i += 1
-                elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < training_size / 2):
+                elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < sample_size / 2):
                     training_captions_dict[image_id] = captions_dict[image_id]
                     female_count += 1
                     i += 1
@@ -315,7 +315,7 @@ def get_training_indices(training_size, mode = 'random'):
                     print(f"captions of {i} images are added")
     
     elif mode == 'activity_balanced':
-        activity_training_size = training_size / len(activity_image_ids.keys())
+        activity_sample_size = sample_size / len(activity_image_ids.keys())
         i = 0
         for activity in activity_image_ids.keys():
             image_ids = activity_image_ids[activity]
@@ -324,19 +324,19 @@ def get_training_indices(training_size, mode = 'random'):
             female_count = 0
             neutral_count = 0
             for image_id in image_ids:
-                if j < activity_training_size:
+                if j < activity_sample_size:
                     if image_id in im_gender_summary:
-                        if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < activity_training_size / 3):
+                        if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < activity_sample_size / 3):
                             training_captions_dict[image_id] = captions_dict[image_id]
                             male_count += 1
                             i += 1
                             j += 1
-                        elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < activity_training_size / 3):
+                        elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < activity_sample_size / 3):
                             training_captions_dict[image_id] = captions_dict[image_id]
                             female_count += 1
                             i += 1
                             j += 1
-                        elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < activity_training_size / 3):
+                        elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < activity_sample_size / 3):
                             training_captions_dict[image_id] = captions_dict[image_id]
                             neutral_count += 1
                             i += 1
@@ -346,7 +346,7 @@ def get_training_indices(training_size, mode = 'random'):
                         print(f"captions of {i} images are added")
     
     elif mode == 'activity_balanced_clean':
-        activity_training_size = training_size / len(activity_image_ids.keys())
+        activity_sample_size = sample_size / len(activity_image_ids.keys())
         i = 0
         for activity in activity_image_ids.keys():
             image_ids = activity_image_ids[activity]
@@ -355,19 +355,19 @@ def get_training_indices(training_size, mode = 'random'):
             female_count = 0
             neutral_count = 0
             for image_id in image_ids:
-                if j < activity_training_size:
+                if j < activity_sample_size:
                     if image_id in im_gender_summary and im_gender_summary[image_id]['clean_noun'] == 1:
-                        if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < activity_training_size / 3):
+                        if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < activity_sample_size / 3):
                             training_captions_dict[image_id] = captions_dict[image_id]
                             male_count += 1
                             i += 1
                             j += 1
-                        elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < activity_training_size / 3):
+                        elif im_gender_summary[image_id]['pred_gt'] == 'female' and (female_count < activity_sample_size / 3):
                             training_captions_dict[image_id] = captions_dict[image_id]
                             female_count += 1
                             i += 1
                             j += 1
-                        elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < activity_training_size / 3):
+                        elif im_gender_summary[image_id]['pred_gt'] == 'neutral'and (neutral_count < activity_sample_size / 3):
                             training_captions_dict[image_id] = captions_dict[image_id]
                             neutral_count += 1
                             i += 1
