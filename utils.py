@@ -1,4 +1,6 @@
 import numpy as np
+import csv
+import pickle
 
 '''
 Agreement score calculated using distance between 5 predictions, with 1 being the best
@@ -22,3 +24,25 @@ def agreement_score(anno_gender):
             error += np.abs(score_cal_dict[p] - score_cal_dict[other_p])
     score = (24 - error) / 24
     return score
+
+def export_csv(filepath, data):
+    with open(filepath, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(data)
+    print(f"{str(data)} saved in {filepath}")
+
+def import_csv(filepath):
+    with open('file.csv', newline='') as f:
+        reader = csv.reader(f)
+    print(f"Loading {filepath}")
+    return list(reader)
+
+def save_obj(obj, name):
+    with open('obj/'+ name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+    print(f"{name} saved  as ~/obj/{name}.pkl")
+
+def load_obj(name):
+    with open('obj/' + name + '.pkl', 'rb') as f:
+        print(f"Loading {name} from ~/obj/{name}.pkl")
+        return pickle.load(f)

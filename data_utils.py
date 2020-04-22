@@ -5,9 +5,10 @@ import json
 import nltk
 import numpy as np
 import random
-from utils import agreement_score
+from utils import agreement_score, export_csv, save_obj, load_obj
+from sklearn.model_selection import StratifiedShuffleSplit
 
-def get_activity_list():
+def get_activity_list(save_file = False):
     # Tagged lists of Activity/ object images from kayburns' Github Repo "Women Snowboard"
     # https://github.com/kayburns/women-snowboard
     activity_list_paths = glob.glob("./data/list/intersection_*")
@@ -19,9 +20,13 @@ def get_activity_list():
             im_ids= f.read().split('\n')
             im_ids = [int(i) for i in im_ids if i != '']
             activity_image_ids[activity] = im_ids
-    return activity_image_ids
+    
+    if save_file == True:
+        save_obj(activity_image_ids, 'activity_image_ids')
+    else:
+        return activity_image_ids
 
-def get_gender_nouns():
+def get_gender_nouns(save_file = False):
     # Gender word lists from sueqian6's Github Repo "Reducing Gender Bias in Word-level Language Models"
     # https://github.com/sueqian6/ACL2019-Reducing-Gender-Bias-in-Word-Level-Language-Models-Using-A-Gender-Equalizing-Loss-Function
 
@@ -49,9 +54,13 @@ def get_gender_nouns():
     for word in ['surfer', 'child', 'kid', 'kids', 'children', 'passenger', 'passengers',\
         'governor', 'someone', 'pedestrian', 'pedestrians']:
         gender_nouns_lookup['neutral'].append(word)
-    return gender_nouns_lookup
 
-def get_qualified_dataset(annotations_path, gender_nouns_lookup, save_file = False):
+    if save_file == True:
+        save_obj(gender_nouns_lookup, 'gender_nouns_lookup')
+    else:
+        return gender_nouns_lookup
+
+def get_qualified_dataset(annotations_path, save_file = False):
     '''
     captions_dict (dict)- key: image_id, value: list of captions
 
@@ -75,6 +84,9 @@ def get_qualified_dataset(annotations_path, gender_nouns_lookup, save_file = Fal
     captions_dict = dict()
     im_gender_summary = dict()
     not_human_im_ids = list() 
+
+    # load pre-processed data
+    gender_nouns_lookup = load_obj('gender_nouns_lookup')
 
     for datatype in ['train', 'val']:
         print(f"\nEvaluating ground truth labels in {datatype} set")
@@ -163,13 +175,13 @@ def get_qualified_dataset(annotations_path, gender_nouns_lookup, save_file = Fal
             pass
     
     if save_file == True:
-        with open('./data/list/qualified_image_ids.csv', "w") as outfile:
-            for image_id in im_gender_summary.keys():
-                outfile.write(str(image_id))
-                outfile.write("\n")
-    return captions_dict, im_gender_summary
+        export_csv('./data/list/qualified_image_ids.csv', list(im_gender_summary.keys()))
+        save_obj(captions_dict, 'captions_dict')
+        save_obj(im_gender_summary, 'im_gender_summary')
+    else:
+        return captions_dict, im_gender_summary
 
-def get_training_data(im_gender_summary, captions_dict, activity_image_ids, training_size, mode = 'random'):
+def get_training_indices(training_size, mode = 'random'):
     assert mode in ['random','balanced_mode','balanced_clean', 'balanced_gender_only', \
                     'balanced_clean_noun', 'clean_noun', 'activity_balanced', 'activity_balanced_clean']
     assert isinstance(training_size, int)
@@ -193,6 +205,11 @@ def get_training_data(im_gender_summary, captions_dict, activity_image_ids, trai
     
     random.seed(123)
     training_captions_dict = dict()
+
+    # Get pre-processed objects
+    im_gender_summary = load_obj('im_gender_summary')
+    captions_dict = load_obj('captions_dict')
+    activity_image_ids = load_obj('activity_image_ids')
     
     if mode == 'random':
         training_captions_dict = dict(random.sample(captions_dict.items(), training_size))
@@ -359,4 +376,20 @@ def get_training_data(im_gender_summary, captions_dict, activity_image_ids, trai
                         if i > 0 and i % 1000 == 0:
                             print(f"captions of {i} images are added")
     
-    return training_captions_dict
+    training_image_ids = list(training_captions_dict.keys())
+    return training_image_ids, training_captions_dict
+
+def train_test_split(training_image_ids, test_size = 0.3, random_state = 123):
+
+    # Get pre-processed objects
+    im_gender_summary = load_obj('im_gender_summary')
+
+    X = np.asarray(training_image_ids)
+    y = np.asarray([im_gender_summary[x]['pred_gt'] for x in X])
+    # Use Stratified shuffle split to ensure the ratio of gender ratio stays the same in train set and validation set (both balanced or random)
+    sss = StratifiedShuffleSplit(n_splits = 1, test_size = test_size, random_state = random_state)
+    for train_idx, test_idx in sss.split(X, y):
+        train_image_ids, test_image_ids = X[train_idx], X[test_idx]
+        gender_train, gender_test = y[train_idx], y[test_idx]
+    return train_image_ids, test_image_ids, gender_train, gender_test
+    # Output X: list of image ids, Y: gender class of test and train images
