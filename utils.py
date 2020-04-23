@@ -40,7 +40,7 @@ def export_csv(filepath, data):
     with open(filepath, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(data)
-    print(f"{str(data)} saved in {filepath}")
+    print(f"saved in {filepath}")
 
 def import_csv(filepath):
     with open('file.csv', newline='') as f:
