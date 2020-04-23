@@ -43,6 +43,10 @@ class MyDataset(Dataset):
             self.word2idx = self.vocab.word2idx
             self.idx2word = self.vocab.idx2word
             print('Vocabulary successfully loaded')
+
+        # Batch_size set to 1 if is test
+        if self.mode == 'test':
+            self.batch_size = 1
         
         # Set up dataset
         self.im_ids = [] # with duplicates for indexing, i.e. if caption 1-5 all correspond to image 8, the im_ids will be [8,8,8,8,8]
@@ -67,7 +71,6 @@ class MyDataset(Dataset):
     def __getitem__(self, index):
         im_id = self.im_ids[index] 
         
-
         # Locate the image file in train or val
         l = len(str(im_id)) # for recreating the file name
         fnames = ["COCO_train2014_"+ "0"* (12-l) + str(im_id) + '.jpg', "COCO_val2014_"+ "0"* (12-l) + str(im_id) + '.jpg']
@@ -107,4 +110,4 @@ class MyDataset(Dataset):
         return indices
     
     def __len__(self):
-        return len(self.ids)
+        return len(self.im_ids)

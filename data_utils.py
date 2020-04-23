@@ -385,7 +385,6 @@ def get_training_indices(sample_size, mode = 'random'):
     return training_image_ids, training_captions_dict
 
 def train_test_split(training_image_ids, test_size = 0.3, random_state = 123):
-
     # Get pre-processed objects
     im_gender_summary = load_obj('im_gender_summary')
 
@@ -399,7 +398,7 @@ def train_test_split(training_image_ids, test_size = 0.3, random_state = 123):
     return train_image_ids, test_image_ids, gender_train, gender_test
     # Output X: list of image ids, Y: gender class of test and train images
 
-def get_test_indices(training_image_ids, sample_size, mode = 'random'):
+def get_test_indices(sample_size, training_image_ids = [], mode = 'random'):
     '''
     training_image_ids: image ids used in training or validation while training the model
     sample_size: # of image ids needed
