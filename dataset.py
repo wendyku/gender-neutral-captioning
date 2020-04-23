@@ -26,8 +26,10 @@ class MyDataset(Dataset):
         
         # Get pre-processed objects
         all_captions_dict = load_obj('captions_dict')
+        print(len(all_captions_dict))
         captions_dict = { image_id: all_captions_dict[image_id] for image_id in image_ids } # only include selected subset of captions
-        
+        print(captions_dict)
+
         # Obtain sample of training images
         #self.training_image_ids, captions_dict = get_training_indices(sample_size = sample_size, mode = "balanced_clean")
         

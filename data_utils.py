@@ -406,7 +406,7 @@ def get_test_indices(sample_size, training_image_ids = [], mode = 'random'):
     assert mode in ['random','balanced_mode','balanced_clean']
     assert isinstance(sample_size, int)
 
-    random.seed(123)
+    #random.seed(123)
     test_captions_dict = dict()
 
     # Get pre-processed objects
