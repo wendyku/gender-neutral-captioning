@@ -100,7 +100,7 @@ def get_qualified_dataset(annotations_path, save_file = False):
                 fnames = ["COCO_train2014_"+ "0"* (12-l) + str(image_id) + '.jpg', "COCO_val2014_"+ "0"* (12-l) + str(image_id) + '.jpg']
                 image_check = glob.glob('./data/images/*/'+fnames[0]) + glob.glob('./data/images/*/'+fnames[1])
 
-                if image_check == []:
+                if image_check != []:
                     caption = captions_json['annotations'][i]['caption']
                     tokens = nltk.word_tokenize(caption)
                     c_female = 0 # count of gender nouns and gender-neutral nouns
