@@ -1,0 +1,13 @@
+tennis 0.9231 
+dirt 0.8947 
+skateboard 0.8919 
+grass 0.8889 
+carriage 0.8889 
+beer 0.8889 
+kite 0.875 
+beach 0.8529 
+road 0.84 
+wagon 0.8333
+bags 0.8333
+sunglasses 0.8333
+surfboard 0.8333

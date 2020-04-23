@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
 
 
 from bias_analysis import *
@@ -17,16 +16,11 @@ bias_items = ('tennis','dirt','skateboard','grass','carriage','beer','kite','bea
               'dress','lap','bed','flowers','mouth','bridle','fire','teeth','curb','device','leash','face')
 
 
-# In[ ]:
-
-
 with open('female_word_file.txt') as f:
     female_nouns = [line[:-1] for line in f]
 with open('male_word_file.txt') as f:
     male_nouns = [line[:-1] for line in f]
 
-
-# In[ ]:
 
 
 # Get 25 samples of each gender doing activity (ie. total 50 samples)
@@ -57,8 +51,6 @@ def get_activity_ids(ids, gender, bias_items, n_samples):
     return activity_ids_dict,captions_dict
 
 
-# In[ ]:
-
 
 def get_allids():
     with open('instances_train2014.json') as file:
@@ -71,7 +63,6 @@ def get_allids():
     return all_ids
 
 
-# In[ ]:
 
 
 n_samples = 25
@@ -88,16 +79,6 @@ for bias_list in [bias_items,bias_activities]:
                 out.write("\n".join(write_ids))
     
 
-
-# In[ ]:
-
-
-captions
-
-
-# In[ ]:
-
-
 # Getting images and copying to folder
 filenames = []
 with open('captions_val2014.json') as file:
@@ -107,24 +88,16 @@ for item in coco_data['images']:
         filenames.append(item['file_name'])
 
 
-# In[ ]:
 
-
-target_folder='trainfolder'
+target_folder='images' #target_folder=os.mkdir('images')
 for image in filenames:
     image = "val2014/" + image 
     shutil.copy(image, target_folder)
 print("Copied sampled images to {}".format(target_folder))
 
 
-# In[ ]:
-
 
 activity_list_paths = glob.glob("*.txt")           
-
-
-# In[185]:
-
 
 os.mkdir('activity_nouns')
 os.mkdir('activity_verbs')
@@ -141,8 +114,6 @@ for file in activity_list_paths:
         except:print()
 
 
-# In[191]:
-
 
 activity_list_paths = glob.glob("activity_verbs/*.txt")  
 
@@ -151,26 +122,6 @@ for file,name in zip(activity_list_paths,files):
     new_name = "intersection_"+name[:-4]+"_person.txt"
     os.rename(file,new_name)
 
-
-# In[195]:
-
-
-activity_list_paths = glob.glob("activity_verbs/*.txt")  
-files = [item.split('\\')[1] for item in activity_list_paths]
-final_verbs = [file[:-4].split('_')[1] for file in files]
-
-activity_list_paths = glob.glob("activity_nouns/*.txt")  
-files = [item.split('\\')[1] for item in activity_list_paths]
-final_nouns = [file[:-4].split('_')[1] for file in files]
-
-
-# In[196]:
-
-
-print(final_verbs,final_nouns)
-
-
-# In[ ]:
 
 
 
