@@ -22,7 +22,18 @@ def agreement_score(anno_gender):
     for ind, p in enumerate(anno_gender):
         for other_p in [x for i,x in enumerate(anno_gender) if i != ind]:
             error += np.abs(score_cal_dict[p] - score_cal_dict[other_p])
-    score = (24 - error) / 24
+    
+    # Because there are only 3 classes available, but there can be 3-5 captions for each image.
+    # max_error is diff based on number of captions
+    if len(anno_gender) == 3:
+        max_error = 8
+    elif len(anno_gender) == 4:
+        max_error = 16
+    else:
+        max_error = 24
+    
+    score = (max_error- error) / max_error
+    # 24 is the max error because there are only 3 classes available, and there are 
     return score
 
 def export_csv(filepath, data):

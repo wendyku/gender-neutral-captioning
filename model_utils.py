@@ -9,12 +9,12 @@ from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from dataset import MyDataset
 
 # Frequency of printing batch loss while training/validating. 
-print_interval = 100
+print_interval = 1000
 
-def load_data(image_folder_path, mode, sample_size = 100):
+def load_data(image_ids, image_folder_path, mode):
     # Initiate instance of MyDataset class
     num_workers = 0
-    dataset = MyDataset(image_folder_path, mode = mode, sample_size = 100)
+    dataset = MyDataset(image_ids, image_folder_path, mode = mode)
     if mode == 'train' or mode == 'val':
         indices = dataset.get_indices()
         initial_sampler = data.sampler.SubsetRandomSampler(indices=indices)
