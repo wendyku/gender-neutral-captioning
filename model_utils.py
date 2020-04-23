@@ -7,6 +7,7 @@ import os
 import time
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from dataset import MyDataset
+from bert_score import score
 
 # Frequency of printing batch loss while training/validating. 
 print_interval = 1000
@@ -146,7 +147,7 @@ def validate(val_loader, encoder, decoder, criterion, vocab, epoch,
                     predicted_ids.append(scores.argmax().item())
                 # Convert word ids to actual words
                 predicted_word_list = word_list(predicted_ids, vocab)
-                caption_word_list = word_list(captions[i].numpy(), vocab)
+                caption_word_list = word_list(captions[i].cpu().numpy(), vocab)
                 # Calculate Bleu-4 score and append it to the batch_bleu_4 list
                 batch_bleu_4 += sentence_bleu([caption_word_list], 
                                                predicted_word_list, 

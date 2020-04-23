@@ -73,11 +73,10 @@ class MyDataset(Dataset):
         fnames = ["COCO_train2014_"+ "0"* (12-l) + str(im_id) + '.jpg', "COCO_val2014_"+ "0"* (12-l) + str(im_id) + '.jpg']
         image_path= glob.glob('./data/images/*/'+fnames[0]) + glob.glob('./data/images/*/'+fnames[1])
         try:
-            image = Image.open(image_path).convert("RGB")
+            image = Image.open(image_path[0]).convert("RGB")
         except:
             print(f"Image file {im_id} cannot be located")
-            sys.exit(1)
-            pass
+            return '', ''
 
         if self.mode == "train" or self.mode == 'val':
             # Convert image to tensor
