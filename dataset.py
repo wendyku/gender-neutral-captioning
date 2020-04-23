@@ -10,6 +10,7 @@ from data_utils import get_training_indices
 from utils import load_obj
 from Vocabulary import Vocabulary
 import sys
+import glob
 
 class MyDataset(Dataset):
     '''
@@ -53,7 +54,6 @@ class MyDataset(Dataset):
                 self.im_ids.append(im_id)
                 self.captions.append(item)
                 self.captions_len.append(len(nltk.tokenize.word_tokenize(item)))
-        print(self.im_ids[:10], self.captions[:10], image_ids[:10])
         
         # Set up paramteres for image feature extraction 
         self.transform = transforms.Compose([

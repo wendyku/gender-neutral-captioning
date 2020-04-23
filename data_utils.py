@@ -144,7 +144,6 @@ def get_qualified_dataset(annotations_path, save_file = False):
                             im_gender_summary[image_id]['anno_noun'] = [noun[0]]
 
                     if i % 100000 == 0:
-                        print()
                         print(f"Caption {i} processed, out of {len(captions_json['annotations'])} captions")
                         print(f"No. of qualified images processed: {len(im_gender_summary)}")
 
