@@ -382,6 +382,7 @@ def get_training_indices(sample_size, mode = 'random'):
                             print(f"captions of {i} images are added")
     
     training_image_ids = list(training_captions_dict.keys())
+    save_obj(training_image_ids, 'training_image_ids')
     return training_image_ids, training_captions_dict
 
 def train_test_split(training_image_ids, test_size = 0.3, random_state = 123):
@@ -406,16 +407,17 @@ def get_test_indices(sample_size, training_image_ids = [], mode = 'random'):
     assert mode in ['random','balanced_mode','balanced_clean']
     assert isinstance(sample_size, int)
 
-    #random.seed(123)
     test_captions_dict = dict()
 
     # Get pre-processed objects
     im_gender_summary = load_obj('im_gender_summary')
     captions_dict = load_obj('captions_dict')
+    shuffle_im_keys = list(im_gender_summary.keys())
+    random.shuffle(shuffle_im_keys)
 
     if mode == 'random':
         i = 0
-        for image_id in im_gender_summary.keys():
+        for image_id in shuffle_im_keys:
             if i < sample_size:
                 if image_id not in training_image_ids:
                     test_captions_dict[image_id] = captions_dict[image_id]
@@ -426,7 +428,7 @@ def get_test_indices(sample_size, training_image_ids = [], mode = 'random'):
         male_count = 0
         female_count = 0
         neutral_count = 0
-        for image_id in im_gender_summary.keys():
+        for image_id in shuffle_im_keys:
             if i < sample_size:
                 if image_id not in training_image_ids:
                     if im_gender_summary[image_id]['pred_gt'] == 'male' and (male_count < sample_size / 3):
@@ -447,7 +449,7 @@ def get_test_indices(sample_size, training_image_ids = [], mode = 'random'):
         male_count = 0
         female_count = 0
         neutral_count = 0
-        for image_id in im_gender_summary.keys():
+        for image_id in shuffle_im_keys:
             if i < sample_size:
                 if image_id not in training_image_ids:
                     if im_gender_summary[image_id]['clean_gender'] == 1:
