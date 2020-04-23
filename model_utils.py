@@ -55,8 +55,8 @@ def train(train_loader, encoder, decoder, criterion, optimizer, vocab_size,
             break 
         # Move to GPU if CUDA is available
         if torch.cuda.is_available():
-            images = images.cuda()
-            captions = captions.cuda()
+            images = images.cuda(device=gpu)
+            captions = captions.cuda(device=gpu)
         # Pass the inputs through the CNN-RNN model
         features = encoder(images)
         outputs = decoder(features, captions)
@@ -126,8 +126,8 @@ def validate(val_loader, encoder, decoder, criterion, vocab, epoch,
 
             # Move to GPU if CUDA is available
             if torch.cuda.is_available():
-                images = images.cuda()
-                captions = captions.cuda()
+                images = images.cuda(device=gpu)
+                captions = captions.cuda(device=gpu)
             
             # Pass the inputs through the CNN-RNN model
             features = encoder(images)
@@ -273,7 +273,7 @@ def get_prediction(data_loader, encoder, decoder, vocab):
     plt.title("Sample Image")
     plt.show()
     if torch.cuda.is_available():
-        image = image.cuda()
+        image = image.cuda(device=gpu)
     features = encoder(image).unsqueeze(1)
 
     print ("Top captions using beam search:")
