@@ -7,6 +7,7 @@ import os
 import time
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from dataset import MyDataset
+from bert_score import score
 
 # Frequency of printing batch loss while training/validating. 
 print_interval = 1000
@@ -55,8 +56,8 @@ def train(train_loader, encoder, decoder, criterion, optimizer, vocab_size,
             break 
         # Move to GPU if CUDA is available
         if torch.cuda.is_available():
-            images = images.cuda(device=gpu)
-            captions = captions.cuda(device=gpu)
+            images = images.cuda()
+            captions = captions.cuda()
         # Pass the inputs through the CNN-RNN model
         features = encoder(images)
         outputs = decoder(features, captions)
@@ -126,8 +127,8 @@ def validate(val_loader, encoder, decoder, criterion, vocab, epoch,
 
             # Move to GPU if CUDA is available
             if torch.cuda.is_available():
-                images = images.cuda(device=gpu)
-                captions = captions.cuda(device=gpu)
+                images = images.cuda()
+                captions = captions.cuda()
             
             # Pass the inputs through the CNN-RNN model
             features = encoder(images)
@@ -146,7 +147,7 @@ def validate(val_loader, encoder, decoder, criterion, vocab, epoch,
                     predicted_ids.append(scores.argmax().item())
                 # Convert word ids to actual words
                 predicted_word_list = word_list(predicted_ids, vocab)
-                caption_word_list = word_list(captions[i].numpy(), vocab)
+                caption_word_list = word_list(captions[i].cpu().numpy(), vocab)
                 # Calculate Bleu-4 score and append it to the batch_bleu_4 list
                 batch_bleu_4 += sentence_bleu([caption_word_list], 
                                                predicted_word_list, 
@@ -273,7 +274,7 @@ def get_prediction(data_loader, encoder, decoder, vocab):
     plt.title("Sample Image")
     plt.show()
     if torch.cuda.is_available():
-        image = image.cuda(device=gpu)
+        image = image.cuda()
     features = encoder(image).unsqueeze(1)
 
     print ("Top captions using beam search:")
