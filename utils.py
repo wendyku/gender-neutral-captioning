@@ -29,8 +29,8 @@ def agreement_score(anno_gender):
         max_error = 8
     elif len(anno_gender) == 4:
         max_error = 16
-    elif len(anno_gender) == 5:
-        max_error = 14
+    else:
+        max_error = 24
     
     score = (max_error- error) / max_error
     # 24 is the max error because there are only 3 classes available, and there are 
