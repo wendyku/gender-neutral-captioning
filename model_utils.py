@@ -391,7 +391,7 @@ def validate_gender_neutral(val_loader, encoder, decoder, criterion, vocab, voca
                     
                 # Convert word ids to actual words
                 predicted_word_list = word_list(predicted_ids, vocab)
-                caption_word_list = word_list(captions[i].numpy(), vocab)
+                caption_word_list = word_list(captions[i].cpu().numpy(), vocab)
                 # Calculate Bleu-4 score and append it to the batch_bleu_4 list
                 batch_bleu_4 += sentence_bleu([caption_word_list], 
                                                predicted_word_list, 
