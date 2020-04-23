@@ -1,0 +1,12 @@
+pushing 0.8333 
+cutting 0.8235 
+having 0.75 
+laying 0.75 
+cut 0.7143 
+petting 0.7143 
+waiting 0.7 
+talking 0.6667 
+haired 0.6667 
+overlooking 0.6667 
+staring 0.6667 
+typing 0.6667 

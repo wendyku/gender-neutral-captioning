@@ -1,0 +1,11 @@
+driving 0.875 
+passing 0.75 
+catching 0.75 
+reading 0.75 
+touching 0.75 
+pulling 0.75 
+wedding 0.75 
+jumping 0.75 
+skateboarding 0.75 
+pulled 0.75 
+riding 0.7206 

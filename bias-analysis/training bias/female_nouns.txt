@@ -1,0 +1,12 @@
+dress 0.9286 
+lap 0.9091 
+bed 0.9048 
+flowers 0.875 
+mouth 0.8571 
+bridle 0.8333 
+fire 0.8182 
+teeth 0.8 
+curb 0.8 
+device 0.8 
+leash 0.7778 
+face 0.7778 
