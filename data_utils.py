@@ -94,53 +94,59 @@ def get_qualified_dataset(annotations_path, save_file = False):
             captions_json = json.load(f)
 
             for i in range(len(captions_json['annotations'])):
+                # Check to make sure image exists, as some images' captions are included in the json file but the image does not exist,  
                 image_id = captions_json['annotations'][i]['image_id']
-                caption = captions_json['annotations'][i]['caption']
-                tokens = nltk.word_tokenize(caption)
-                c_female = 0 # count of gender nouns and gender-neutral nouns
-                c_male = 0
-                c_neutral = 0
-                noun = []
+                l = len(str(image_id))
+                fnames = ["COCO_train2014_"+ "0"* (12-l) + str(image_id) + '.jpg', "COCO_val2014_"+ "0"* (12-l) + str(image_id) + '.jpg']
+                image_check = glob.glob('./data/images/*/'+fnames[0]) + glob.glob('./data/images/*/'+fnames[1])
 
-                # Evaluate annotator's noun used to describe humans
-                for t in tokens:
-                    t = t.lower()
-                    if t in gender_nouns_lookup['female']:
-                        c_female += 1
-                        noun.append(t)
-                    elif t in gender_nouns_lookup['male']:
-                        c_male += 1
-                        noun.append(t)
-                    elif t in gender_nouns_lookup['neutral']:
-                        c_neutral += 1
-                        noun.append(t)
+                if image_check == []:
+                    caption = captions_json['annotations'][i]['caption']
+                    tokens = nltk.word_tokenize(caption)
+                    c_female = 0 # count of gender nouns and gender-neutral nouns
+                    c_male = 0
+                    c_neutral = 0
+                    noun = []
 
-                # Only include image for training if more than one caption of the image mention human
-                # Conflicting gender mentions are also dropped, e.g. "a boy and a girl are on a beach"
-                if c_female + c_male + c_neutral == 1:
-                    # Assign gender sentiment to the caption
-                    if c_female > 0:
-                        gender = 'female'
-                    elif c_male > 0:
-                        gender = 'male'
-                    else:
-                        gender = 'neutral'
+                    # Evaluate annotator's noun used to describe humans
+                    for t in tokens:
+                        t = t.lower()
+                        if t in gender_nouns_lookup['female']:
+                            c_female += 1
+                            noun.append(t)
+                        elif t in gender_nouns_lookup['male']:
+                            c_male += 1
+                            noun.append(t)
+                        elif t in gender_nouns_lookup['neutral']:
+                            c_neutral += 1
+                            noun.append(t)
 
-                    # Populate captions dict and image gender summary dict
-                    if image_id in captions_dict:
-                        captions_dict[image_id] += [caption]
-                        im_gender_summary[image_id]['anno_gender'].append(gender)
-                        im_gender_summary[image_id]['anno_noun'].append(noun[0])
-                    else:
-                        captions_dict[image_id] = [caption]
-                        im_gender_summary[image_id] = dict()
-                        im_gender_summary[image_id]['anno_gender'] = [gender]
-                        im_gender_summary[image_id]['anno_noun'] = [noun[0]]
+                    # Only include image for training if more than one caption of the image mention human
+                    # Conflicting gender mentions are also dropped, e.g. "a boy and a girl are on a beach"
+                    if c_female + c_male + c_neutral == 1:
+                        # Assign gender sentiment to the caption
+                        if c_female > 0:
+                            gender = 'female'
+                        elif c_male > 0:
+                            gender = 'male'
+                        else:
+                            gender = 'neutral'
 
-                if i % 100000 == 0:
-                    print()
-                    print(f"Caption {i} processed, out of {len(captions_json['annotations'])} captions")
-                    print(f"No. of qualified images processed: {len(im_gender_summary)}")
+                        # Populate captions dict and image gender summary dict
+                        if image_id in captions_dict:
+                            captions_dict[image_id] += [caption]
+                            im_gender_summary[image_id]['anno_gender'].append(gender)
+                            im_gender_summary[image_id]['anno_noun'].append(noun[0])
+                        else:
+                            captions_dict[image_id] = [caption]
+                            im_gender_summary[image_id] = dict()
+                            im_gender_summary[image_id]['anno_gender'] = [gender]
+                            im_gender_summary[image_id]['anno_noun'] = [noun[0]]
+
+                    if i % 100000 == 0:
+                        print()
+                        print(f"Caption {i} processed, out of {len(captions_json['annotations'])} captions")
+                        print(f"No. of qualified images processed: {len(im_gender_summary)}")
 
     for image_id in im_gender_summary:
         # Delete images where <3 annotators mentioned the human figure
@@ -166,7 +172,7 @@ def get_qualified_dataset(annotations_path, save_file = False):
                 im_gender_summary[image_id]['clean_noun'] = 1
             else:
                 im_gender_summary[image_id]['clean_noun'] = 0
-            
+    
     for image_id in not_human_im_ids:
         try:
             del captions_dict[image_id]
@@ -465,5 +471,5 @@ def get_test_indices(training_image_ids, sample_size, mode = 'random'):
                         
                     if i % 1000 == 0:
                         print(f"captions of {i} images are added")
-                        
+
     return test_captions_dict

@@ -66,18 +66,18 @@ class MyDataset(Dataset):
     
     def __getitem__(self, index):
         im_id = self.im_ids[index] 
-        l = len(str(im_id)) # for recreating the file name
+        
 
         # Locate the image file in train or val
+        l = len(str(im_id)) # for recreating the file name
+        fnames = ["COCO_train2014_"+ "0"* (12-l) + str(im_id) + '.jpg', "COCO_val2014_"+ "0"* (12-l) + str(im_id) + '.jpg']
+        image_path= glob.glob('./data/images/*/'+fnames[0]) + glob.glob('./data/images/*/'+fnames[1])
         try:
-            image = Image.open(self.image_folder_path + "train2014/COCO_train2014_"+ "0"* (12-l) + str(im_id) + '.jpg').convert("RGB")
+            image = Image.open(image_path).convert("RGB")
         except:
-            try:
-                image = Image.open(self.image_folder_path + "val2014/COCO_val2014_" + "0"* (12-l) + str(im_id) + '.jpg').convert("RGB")
-            except:
-                print(f"Image file {im_id} cannot be located")
-                sys.exit(1)
-                pass
+            print(f"Image file {im_id} cannot be located")
+            sys.exit(1)
+            pass
 
         if self.mode == "train" or self.mode == 'val':
             # Convert image to tensor
