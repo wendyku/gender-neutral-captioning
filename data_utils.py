@@ -442,9 +442,6 @@ def get_test_indices(training_image_ids, sample_size, mode = 'random'):
                         test_captions_dict[image_id] = captions_dict[image_id]
                         neutral_count += 1
                         i += 1
-                    
-                if i % 1000 == 0:
-                    print(f"captions of {i} images are added")
     
     elif mode == 'balanced_clean':
         i = 0
@@ -467,8 +464,5 @@ def get_test_indices(training_image_ids, sample_size, mode = 'random'):
                             test_captions_dict[image_id] = captions_dict[image_id]
                             neutral_count += 1
                             i += 1
-                        
-                    if i % 1000 == 0:
-                        print(f"captions of {i} images are added")
 
     return test_captions_dict
