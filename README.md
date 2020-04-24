@@ -3,6 +3,10 @@
 ## Motivation
 Our project discusses and tackles gender bias in captioning models, so that the image captions will be neutral of gender stereotypes. Specifically, this project 1) identifies types of gender bias in the captioning model, 2) experiments with different methods in reducing gender bias and 3) interprets the success of the final model. We also aim at building an inclusive captioning model that can distinguish not only the gender binary (ie. man or woman) but also a third category (ie. person) based on visual appearance.
 
+![Example of Bias](/data/bias_example.png)
+
+Above is some examples of gender bias in an untuned captioning model. Some activities, objects and context are associated with either gender in the model due to overrepresentation of men in the samples and bias in the annotations. Women can also be professional chefs cooking outside of home kitchen, while men can also enjoy taking selfies.
+
 ## Environment and data set up
 1. Install the project dependencies in your virtual environment. Refer to [pipenv](https://github.com/pypa/pipenv) for commands specific to your OS. For macOS/ Linux, run
 ```
