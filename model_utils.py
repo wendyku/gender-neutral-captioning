@@ -16,6 +16,7 @@ from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from utils import load_obj
 import math
 import warnings
+import pickle
 
 # Frequency of printing batch loss while training/validating. 
 print_interval = 1000
@@ -23,10 +24,10 @@ print_interval = 1000
 '''
 Default data loader, train, validate functions
 '''
-def load_data(image_ids, image_folder_path, mode):
+def load_data(image_ids, image_folder_path, mode, vocab_file = "", batch_size = 10):
     # Initiate instance of MyDataset class
     num_workers = 0
-    dataset = MyDataset(image_ids, image_folder_path, mode = mode)
+    dataset = MyDataset(image_ids, image_folder_path, mode = mode, vocab_file = vocab_file, batch_size = batch_size)
     if mode == 'train' or mode == 'val':
         indices = dataset.get_indices()
         initial_sampler = data.sampler.SubsetRandomSampler(indices=indices)
@@ -638,10 +639,55 @@ def get_prediction(data_loader, encoder, decoder, vocab):
         sentence = clean_sentence(output, vocab)
         print (sentence)
 
-def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
-
-    sample_size = 1
+def predict_caption(image_id = "", mode = "COCO"):
     
+    # Get model
+    if model_path == '': # if not specified, assume it is best model saved in models
+        model_path = './models/best-model.pkl'
+    if torch.cuda.is_available() == True:
+        checkpoint = torch.load(model_path)
+    else:
+        checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
+        #checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
+    print(f'Best model is loaded from {model_path} . . .')
+    
+    # Get the vocabulary and its size
+    if vocab_path != '': # if not specified, assume it is the vocab pickle saved in object
+        with open(vocab_path, 'rb') as f:
+            vocab = pickle.load(f)
+            print("Loaded vocab file of pretrained model")
+    else:
+        vocab = load_obj('vocab')
+    vocab_size = len(vocab)
+
+
+    transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.RandomCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)),
+        ])
+
+
+
+def evaluate_model(sample_size,image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
+    
+    # Get the training image id paths
+    if training_image_ids_path == '': # if not specified, assume it is the vocab pickle saved in object
+        training_image_ids = load_obj('training_image_ids')
+    else:
+        with open(training_image_ids_path, 'rb') as f:
+            training_image_ids = pickle.load(f)
+
+    # Get test image ids
+    test_image_ids = get_test_indices(sample_size, training_image_ids, mode = mode)
+
+
+
+
+def predict_capts(test_image_ids, vocab_path = '', model_path = '',\
+                 embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
     # Get model
     if model_path == '': # if not specified, assume it is best model saved in models
         model_path = './models/best-model.pkl'
@@ -649,7 +695,6 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
         checkpoint = torch.load('./models/best-model.pkl')
     else:
         checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
-    print(f'Best model is loaded from {model_path} . . .')
     
     # Get the vocabulary and its size
     if vocab_path == '': # if not specified, assume it is the vocab pickle saved in object
@@ -658,21 +703,87 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
         with open(vocab_path, 'rb') as f:
             vocab = pickle.load(f)
     vocab_size = len(vocab)
+  
+    # convert image
+    transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.RandomCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)),
+        ])
+    
+
+    # Initialize the encoder and decoder, and set each to inference mode
+    encoder = EncoderCNN(embed_size)
+    encoder.eval()
+    decoder = DecoderRNN(embed_size, hidden_size, vocab_size)
+    decoder.eval()
+
+    # Load the pre-trained weights
+    encoder.load_state_dict(checkpoint['encoder'])
+    decoder.load_state_dict(checkpoint['decoder'])
+
+    predicted_capts=dict()
+
+    test_loader = load_data(test_image_ids,\
+                            image_folder_path, mode = 'test')
+    
+
+    for test_image_id in test_image_ids:
+        ##Get the image path from the image_id
+        original_image, image = next(iter(test_loader))
+        
+        transformed_image = transform(image)
+        transformed_image_plot = np.squeeze(transformed_image.numpy())\
+                    .transpose((1, 2, 0))
+        features = encoder(transformed_image).unsqueeze(1)
+        output = decoder.sample_beam_search(features)
+        sentences = clean_sentence(output, vocab)
+        ##add sentences to predicted image captions
+        predicted_captions['test_image_id']=sentences
+
+    return predicted_captions
+
+
+def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
+
+    sample_size = 1
+    
+    # Get model
+    if model_path == '': # if not specified, assume it is best model saved in models
+        model_path = './models/best-model.pkl'
+    if torch.cuda.is_available() == True:
+        checkpoint = torch.load(model_path)
+    else:
+        checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
+        #checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
+    print(f'Best model is loaded from {model_path} . . .')
     
     # Get the vocabulary and its size
+    if vocab_path != '': # if not specified, assume it is the vocab pickle saved in object
+        with open(vocab_path, 'rb') as f:
+            vocab = pickle.load(f)
+            print("Loaded vocab file of pretrained model")
+    else:
+        vocab = load_obj('vocab')
+    vocab_size = len(vocab)
+    
+    # Get the training image id paths
     if training_image_ids_path == '': # if not specified, assume it is the vocab pickle saved in object
         training_image_ids = load_obj('training_image_ids')
     else:
-        with open(vocab_path, 'rb') as f:
+        with open(training_image_ids_path, 'rb') as f:
             training_image_ids = pickle.load(f)
     
     test_image_ids = get_test_indices(sample_size, training_image_ids, mode = mode)
     image_id = list(test_image_ids.keys())[0]
-    test_loader = load_data(test_image_ids.keys(), image_folder_path, mode = 'test')
+    test_loader = load_data(test_image_ids.keys(), image_folder_path, mode = 'test', vocab_file = vocab)
     original_image, image = next(iter(test_loader))
     transformed_image = image.numpy()
-    transformed_image = np.squeeze(transformed_image)\
-                    .transpose((1, 2, 0))
+    transformed_image = np.squeeze(transformed_image)
+    print(transformed_image.shape, np.squeeze(original_image).shape)
+    transformed_image = transformed_image.transpose((1, 2, 0))
     
     # Print sample image, before and after pre-processing
     print(f'\nTest_image_id: {image_id}')
@@ -704,71 +815,4 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
     print('\n\nOriginal captions labelled by human annotators: \n')
     for caption in set(original_captions):
         print(caption)
-        
-def predict_image(test_image_path, vocab_path = '', model_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
-
-    sample_size = 1
-    
-    # Get model
-    if model_path == '': # if not specified, assume it is best model saved in models
-        model_path = './models/best-model.pkl'
-    if torch.cuda.is_available() == True:
-        checkpoint = torch.load('./models/best-model.pkl')
-    else:
-        checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
-    print(f'Best model is loaded from {model_path} . . .')
-    
-    # Get the vocabulary and its size
-    if vocab_path == '': # if not specified, assume it is the vocab pickle saved in object
-        vocab = load_obj('vocab')
-    else:
-        with open(vocab_path, 'rb') as f:
-            vocab = pickle.load(f)
-    vocab_size = len(vocab)
-  
-    # convert image
-    transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.RandomCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)),
-        ])
-    image = Image.open(test_image_path).convert("RGB")
-    original_image = np.array(image)
-    transformed_image = transform(image)
-    transformed_image_plot = np.squeeze(transformed_image.numpy())\
-                    .transpose((1, 2, 0))
-    
-    # Print sample image, before and after pre-processing
-    plt.imshow(np.squeeze(original_image))
-    plt.title('Test image- original')
-    plt.show()
-    plt.imshow(transformed_image_plot)
-    plt.title('Test image- transformed')
-    plt.show()
-
-    # Initialize the encoder and decoder, and set each to inference mode
-    encoder = EncoderCNN(embed_size)
-    encoder.eval()
-    decoder = DecoderRNN(embed_size, hidden_size, vocab_size)
-    decoder.eval()
-
-    # Load the pre-trained weights
-    encoder.load_state_dict(checkpoint['encoder'])
-    decoder.load_state_dict(checkpoint['decoder'])
-    
-    print(transformed_image)
-    print(encoder(transformed_image).shape, encoder(transformed_image).unsqueeze(1).shape)
-    features = encoder(transformed_image).unsqueeze(1)
-    output = decoder.sample_beam_search(features)
-    sentences = clean_sentence(output, vocab)
-    print('Predicted caption: \n')
-    for sentence in set(sentences):
-        print(f'{sentence}')
-        
-    original_captions = test_image_ids[image_id]
-    print('\n\nOriginal captions labelled by human annotators: \n')
-    for caption in set(original_captions):
-        print(caption)
-
+ 

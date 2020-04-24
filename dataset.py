@@ -17,12 +17,11 @@ class MyDataset(Dataset):
     sample_size : # of images to be used 
     '''
     
-    def __init__(self, image_ids, image_folder_path, mode = 'train', vocab_threshold = 5, batch_size = 10):
+    def __init__(self, image_ids, image_folder_path, mode = 'train', vocab_file = "", vocab_threshold = 5, batch_size = 10):
         assert mode in ['train', 'val', 'test']
         
         self.mode = mode
         self.image_folder_path = image_folder_path
-        self.batch_size = batch_size
         
         # Get pre-processed objects
         all_captions_dict = load_obj('captions_dict')
@@ -38,6 +37,11 @@ class MyDataset(Dataset):
         if self.mode == 'train':
             self.vocab = Vocabulary(captions_dict)
             print('Vocabulary successfully created')
+        elif vocab_file != "":
+            self.vocab = vocab_file
+            self.word2idx = self.vocab.word2idx
+            self.idx2word = self.vocab.idx2word
+            print('Vocabulary successfully loaded')
         else:
             self.vocab = load_obj("vocab")
             self.word2idx = self.vocab.word2idx
