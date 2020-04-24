@@ -21,5 +21,5 @@ $ pipenv install --dev
   - 2014 Test images [6GB]
   By completion, the subdirectory `data/images/` should contain 3 folders, `train2014`, `val2014` and `test2014`.
   
-  ## Train and/or Use model to predict
-  The end-to-end process of our project can be reproduced via our Gender_Neutral_Captioning notebook.
+## Train and/or Use model to predict
+The end-to-end process of our project can be reproduced via our Gender_Neutral_Captioning notebook.
