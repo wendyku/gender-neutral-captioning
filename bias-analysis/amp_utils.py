@@ -3,8 +3,8 @@
 ## Evaluating mean bias amplification
 
 
-from balance_training_set import read_data,get_data,split_train_data
-from bias_analysis import top_n_items, bias
+# from balance_training_set import read_data,get_data,split_train_data
+from biasanalysis.bias_analysis import top_n_items, bias
 
 
 # top 12 biased verbs from both genders
@@ -39,11 +39,15 @@ def bias_amplification(train_captions=[],test_captions=[], train_dict_man = {}, 
   # CALCULATING BIAS IN TRAIN CORPUS
   top_n_items(pos='noun', all_captions=train_captions)
   if train_captions!=[]: train_dict_man, train_dict_woman = bias()
-
+  
   # CALCULATING BIAS IN TEST (GENERATED) CORPUS
+  bias_items = [key for key,value in train_dict_man.items() if value>0.5]
+  bias_items.extend([key for key,value in train_dict_woman.items() if value>0.5])
+  print(bias_items)
+
   top_n_items(pos='noun', all_captions=test_captions)
   test_dict_man, test_dict_woman = bias()
-
+  
   male_sum = bias_diff_sum(train_dict_man,test_dict_man)
   female_sum = bias_diff_sum(train_dict_woman, test_dict_woman)
 
