@@ -4,7 +4,7 @@
 Our project discusses and tackles gender bias in captioning models, so that the image captions will be neutral of gender stereotypes. Specifically, this project 1) identifies types of gender bias in the captioning model, 2) experiments with different methods in reducing gender bias and 3) interprets the success of the final model. We also aim at building an inclusive captioning model that can distinguish not only the gender binary (ie. man or woman) but also a third category (ie. person) based on visual appearance.
 
 ## Environment and data set up
-1. Install the project dependencies in your virtual environment. Refer to https://github.com/pypa/pipenv for commands specific to your OS. For macOS/ Linux, run
+1. Install the project dependencies in your virtual environment. Refer to [pipenv](https://github.com/pypa/pipenv) for commands specific to your OS. For macOS/ Linux, run
 ```
 $ pipenv install --dev
 ```
@@ -22,7 +22,7 @@ Main dependencies:
 ```
 $ mkdir models
 ```
-3. Download the following data from the COCO website(http://cocodataset.org/#download) into a subdirectory `data` located inside this project's directory. Move the folders into the repo's subdirectory `data`. This step is necessary only if intended to train a model or evaluate model results using COCO dataset.
+3. Download the following data from the [COCO website](http://cocodataset.org/#download) into a subdirectory `data` located inside this project's directory. Move the folders into the repo's subdirectory `data`. This step is necessary only if intended to train a model or evaluate model results using COCO dataset.
 
 - Under **Annotations**, download:
   - 2014 Train/Val annotations [241MB]
@@ -35,7 +35,7 @@ $ mkdir models
   
   By completion, the subdirectory `data/images/` should contain 2 folders, `train2014` and `val2014`.
 
-3. Download folder containing pretained model (https://drive.google.com/open?id=1WLuLVc_57UgunkJmtlW78AeVZGWxVPEy). This model is trained on 4,625 COCO images with human figures as center of interest, using a balanced clean dataset and cross-entropy loss. Move the folders into the repo's main directory. This step is only necessary if intended to use pre-trained model.
+3. [Download folder containing pretained model.](https://drive.google.com/open?id=1WLuLVc_57UgunkJmtlW78AeVZGWxVPEy) This model is trained on 4,625 COCO images with human figures as center of interest, using a balanced clean dataset and cross-entropy loss. Move the folders into the repo's main directory. This step is only necessary if intended to use pre-trained model.
 
 - Download and unzip:
   - Gender_Neutral_Captioning_model
