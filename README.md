@@ -18,7 +18,7 @@ Main dependencies:
 - matplotlib
 - json
 
-2. Clone this repository locally. Create a subdirectory `model`.
+2. Download this repository locally. Create a subdirectory `model`, all trained models will be saved in this subdirectory.
 ```
 $ mkdir models
 ```
