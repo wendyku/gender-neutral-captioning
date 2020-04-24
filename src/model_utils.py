@@ -11,12 +11,14 @@ from PIL import Image
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from src.dataset import MyDataset
 from src.model import EncoderCNN, DecoderRNN
+from Vocabulary import Vocabulary
 from src.data_utils import get_gender_nouns, get_test_indices
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from src.utils import load_obj
 import math
 import pickle
 import random
+
 
 # Frequency of printing batch loss while training/validating. 
 print_interval = 1000
@@ -730,3 +732,82 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
     else:
         return [s for s in set(sentences)]
  
+
+def predict_from_image(image_path, vocab_path = '', model_path = '', embed_size = 256, hidden_size = 512, is_print = True, return_one = False):
+
+    sample_size = 1
+    
+    # Get model
+    if model_path == '': # if not specified, assume it is best model saved in models
+        model_path = './models/best-model.pkl'
+    if torch.cuda.is_available() == True:
+        checkpoint = torch.load(model_path)
+    else:
+        checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
+        #checkpoint = torch.load(model_path, map_location='cpu')
+    #print(f'Best model is loaded from {model_path} . . .')
+    
+    # Get the vocabulary and its size
+    if vocab_path != '': # if not specified, assume it is the vocab pickle saved in object
+        with open(vocab_path, 'rb') as f:
+            vocab = pickle.load(f)
+            #print("Loaded vocab file of pretrained model")
+    else:
+        vocab = load_obj('vocab')
+    vocab_size = len(vocab)
+    
+    # Transform image
+    transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.RandomCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)),
+        ])
+    image = Image.open(image_path).convert("RGB")
+    original_image = np.array(image)
+    image = transform(image)
+    
+    if is_print == True:
+        transformed_image = image.numpy()
+        transformed_image = np.squeeze(transformed_image)
+        transformed_image = transformed_image.transpose((1, 2, 0))
+        np.clip(transformed_image, 0, 1)
+
+        # Print sample image, before and after pre-processing
+        plt.imshow(np.asarray(original_image))
+        #plt.imshow(np.squeeze(original_image))
+        plt.title('Test image- original')
+        plt.show()
+        plt.imshow(transformed_image)
+        plt.title('Test image- transformed')
+        plt.show()
+
+    # Initialize the encoder and decoder, and set each to inference mode
+    encoder = EncoderCNN(embed_size)
+    encoder.eval()
+    decoder = DecoderRNN(embed_size, hidden_size, vocab_size)
+    decoder.eval()
+
+    # Load the pre-trained weights
+    encoder.load_state_dict(checkpoint['encoder'])
+    decoder.load_state_dict(checkpoint['decoder'])
+
+    # Move models to GPU if CUDA is available.
+    if torch.cuda.is_available():
+        encoder.cuda()
+        decoder.cuda()
+        image = image.cuda()
+        
+    features = encoder(image).unsqueeze(1)
+    output = decoder.sample_beam_search(features)
+    sentences = clean_sentence(output, vocab)
+    
+    if is_print == True:
+        print('Predicted caption: \n')
+        for sentence in set(sentences):
+            print(f'{sentence}')
+    elif return_one == True:
+        return sentences[0]
+    else:
+        return [s for s in set(sentences)]

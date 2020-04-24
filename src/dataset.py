@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from PIL import Image
 from src.data_utils import get_training_indices
 from src.utils import load_obj
-from src.Vocabulary import Vocabulary
+from Vocabulary import Vocabulary
 import sys
 import glob
 
