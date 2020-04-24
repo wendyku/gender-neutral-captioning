@@ -59,7 +59,7 @@ The notebook consists of 4 major parts:
 
 Note:
 1. Each section can be run independently.
-- To run an individual section, click the cell in the section and hit Cmd + enter. Alternatively, select Cell-> Run Cell from the top navigation bar.
+- To run an individual section, click the cell in the section and hit Cmd + enter.
 
 2. All sections other than Part IIIb requires a full download of the COCO 2014 Training and Validation dataset, in the structure specified above.
 
