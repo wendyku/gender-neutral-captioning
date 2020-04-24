@@ -6,13 +6,16 @@ import numpy as np
 import sys
 import os
 import time
+from torchvision import transforms
+from PIL import Image
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from dataset import MyDataset
 from model import EncoderCNN, DecoderRNN
-from data_utils import get_gender_nouns
+from data_utils import get_gender_nouns, get_test_indices
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
-from data_utils import get_test_indices
+from utils import load_obj
 import math
+import warnings
 
 # Frequency of printing batch loss while training/validating. 
 print_interval = 1000
@@ -201,6 +204,11 @@ def gender_neutral_loss_setup(train_loader, vocab_size):
     fonehot = torch.zeros(len(vocab))
     monehot =torch.zeros(len(vocab))
     nonehot=torch.zeros(len(vocab))
+    if torch.cuda.is_available():
+       fonehot = fonehot.to("cuda:0")
+       monehot = monehot.to("cuda:0")
+       nonehot = nonehot.to("cuda:0")    
+    
     for i,word in enumerate(vocab_words):
         ##female one hot vector (all female associated words are tagged 1 and the rest are 0's)
         if any(word==fem_word for fem_word in female_tags):
@@ -275,6 +283,8 @@ def train_gender_neutral(train_loader, encoder, decoder, criterion, optimizer, v
         for i in range(len(outputs)):
                 for scores in outputs[i]:
                     #0 out all non-gendered words in scores and find the sum of the scores for all gendered words
+                    if torch.cuda.is_available():
+                        scores = scores.to("cuda:0")
                     female_ops+=torch.matmul(fonehot,scores.t())
                     male_ops+=torch.matmul(monehot,scores.t())
                     neutral_ops+=torch.matmul(nonehot,scores.t())
@@ -367,6 +377,8 @@ def validate_gender_neutral(val_loader, encoder, decoder, criterion, vocab, voca
             for i in range(len(outputs)):
                 predicted_ids = []
                 for scores in outputs[i]:
+                    if torch.cuda.is_available():
+                        scores = scores.to("cuda:0")
                     # Find the index of the token that has the max score
                     predicted_ids.append(scores.argmax().item())
                     #0 out all non-gendered words in scores and find the sum of the scores for all gendered words
@@ -379,7 +391,7 @@ def validate_gender_neutral(val_loader, encoder, decoder, criterion, vocab, voca
                     
                 # Convert word ids to actual words
                 predicted_word_list = word_list(predicted_ids, vocab)
-                caption_word_list = word_list(captions[i].numpy(), vocab)
+                caption_word_list = word_list(captions[i].cpu().numpy(), vocab)
                 # Calculate Bleu-4 score and append it to the batch_bleu_4 list
                 batch_bleu_4 += sentence_bleu([caption_word_list], 
                                                predicted_word_list, 
@@ -436,6 +448,10 @@ def train_model(train_image_ids, val_image_ids, image_folder_path, batch_size, e
     assert mode in ['reg','gender_neutral']
     #reg: regular training loss function
     #gender_neural: alternative loss function that penalizes gender bias
+    if torch.cuda.is_available():
+        global device
+        device = "cuda:0"
+        
     # Set up
     train_loader, val_loader = loader_setup(train_image_ids, val_image_ids, image_folder_path)
     vocab = train_loader.dataset.vocab
@@ -615,35 +631,57 @@ def get_prediction(data_loader, encoder, decoder, vocab):
 
     print ("Top captions using beam search:")
     outputs = decoder.sample_beam_search(features)
-    # Print maximum the top 3 predictions
-    num_sents = min(len(outputs), 3)
+    
+    # Print maximum the top 5 predictions
+    num_sents = min(len(outputs), 5)
     for output in outputs[:num_sents]:
         sentence = clean_sentence(output, vocab)
         print (sentence)
 
-def predict_any_image(image_folder_path, training_image_ids = [], embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
-    checkpoint = torch.load('./models/best-model.pkl')
-    print('Best model is loaded from ./models/best-model.pkl . . .')
-    
+def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
+
     sample_size = 1
-    test_image_ids = get_test_indices(sample_size, training_image_ids, mode = 'balanced_clean')
+    
+    # Get model
+    if model_path == '': # if not specified, assume it is best model saved in models
+        model_path = './models/best-model.pkl'
+    if torch.cuda.is_available() == True:
+        checkpoint = torch.load('./models/best-model.pkl')
+    else:
+        checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
+    print(f'Best model is loaded from {model_path} . . .')
+    
+    # Get the vocabulary and its size
+    if vocab_path == '': # if not specified, assume it is the vocab pickle saved in object
+        vocab = load_obj('vocab')
+    else:
+        with open(vocab_path, 'rb') as f:
+            vocab = pickle.load(f)
+    vocab_size = len(vocab)
+    
+    # Get the vocabulary and its size
+    if training_image_ids_path == '': # if not specified, assume it is the vocab pickle saved in object
+        training_image_ids = load_obj('training_image_ids')
+    else:
+        with open(vocab_path, 'rb') as f:
+            training_image_ids = pickle.load(f)
+    
+    test_image_ids = get_test_indices(sample_size, training_image_ids, mode = mode)
+    image_id = list(test_image_ids.keys())[0]
     test_loader = load_data(test_image_ids.keys(), image_folder_path, mode = 'test')
     original_image, image = next(iter(test_loader))
     transformed_image = image.numpy()
     transformed_image = np.squeeze(transformed_image)\
                     .transpose((1, 2, 0))
-
+    
     # Print sample image, before and after pre-processing
+    print(f'\nTest_image_id: {image_id}')
     plt.imshow(np.squeeze(original_image))
     plt.title('Test image- original')
     plt.show()
     plt.imshow(transformed_image)
     plt.title('Test image- transformed')
     plt.show()
-
-    # Get the vocabulary and its size
-    vocab = test_loader.dataset.vocab
-    vocab_size = len(vocab)
 
     # Initialize the encoder and decoder, and set each to inference mode
     encoder = EncoderCNN(embed_size)
@@ -655,14 +693,82 @@ def predict_any_image(image_folder_path, training_image_ids = [], embed_size = 2
     encoder.load_state_dict(checkpoint['encoder'])
     decoder.load_state_dict(checkpoint['decoder'])
 
-    # Move models to GPU if CUDA is available.
-    if torch.cuda.is_available():
-        encoder.cuda()
-        decoder.cuda()
-
     features = encoder(image).unsqueeze(1)
     output = decoder.sample_beam_search(features)
     sentences = clean_sentence(output, vocab)
-    print('example sentence: \n')
+    print('Predicted caption: \n')
     for sentence in set(sentences):
         print(f'{sentence}')
+        
+    original_captions = test_image_ids[image_id]
+    print('\n\nOriginal captions labelled by human annotators: \n')
+    for caption in set(original_captions):
+        print(caption)
+        
+def predict_image(test_image_path, vocab_path = '', model_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
+
+    sample_size = 1
+    
+    # Get model
+    if model_path == '': # if not specified, assume it is best model saved in models
+        model_path = './models/best-model.pkl'
+    if torch.cuda.is_available() == True:
+        checkpoint = torch.load('./models/best-model.pkl')
+    else:
+        checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
+    print(f'Best model is loaded from {model_path} . . .')
+    
+    # Get the vocabulary and its size
+    if vocab_path == '': # if not specified, assume it is the vocab pickle saved in object
+        vocab = load_obj('vocab')
+    else:
+        with open(vocab_path, 'rb') as f:
+            vocab = pickle.load(f)
+    vocab_size = len(vocab)
+  
+    # convert image
+    transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.RandomCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)),
+        ])
+    image = Image.open(test_image_path).convert("RGB")
+    original_image = np.array(image)
+    transformed_image = transform(image)
+    transformed_image_plot = np.squeeze(transformed_image.numpy())\
+                    .transpose((1, 2, 0))
+    
+    # Print sample image, before and after pre-processing
+    plt.imshow(np.squeeze(original_image))
+    plt.title('Test image- original')
+    plt.show()
+    plt.imshow(transformed_image_plot)
+    plt.title('Test image- transformed')
+    plt.show()
+
+    # Initialize the encoder and decoder, and set each to inference mode
+    encoder = EncoderCNN(embed_size)
+    encoder.eval()
+    decoder = DecoderRNN(embed_size, hidden_size, vocab_size)
+    decoder.eval()
+
+    # Load the pre-trained weights
+    encoder.load_state_dict(checkpoint['encoder'])
+    decoder.load_state_dict(checkpoint['decoder'])
+    
+    print(transformed_image)
+    print(encoder(transformed_image).shape, encoder(transformed_image).unsqueeze(1).shape)
+    features = encoder(transformed_image).unsqueeze(1)
+    output = decoder.sample_beam_search(features)
+    sentences = clean_sentence(output, vocab)
+    print('Predicted caption: \n')
+    for sentence in set(sentences):
+        print(f'{sentence}')
+        
+    original_captions = test_image_ids[image_id]
+    print('\n\nOriginal captions labelled by human annotators: \n')
+    for caption in set(original_captions):
+        print(caption)
+

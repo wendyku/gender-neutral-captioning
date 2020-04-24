@@ -49,11 +49,11 @@ def import_csv(filepath):
     return list(reader)
 
 def save_obj(obj, name):
-    with open('obj/'+ name + '.pkl', 'wb') as f:
+    with open('obj/'+ str(name) + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
     print(f"{name} saved  as ~/obj/{name}.pkl")
 
 def load_obj(name):
-    with open('obj/' + name + '.pkl', 'rb') as f:
-        print(f"Loading {name} from ~/obj/{name}.pkl")
+    with open('obj/' + str(name) + '.pkl', 'rb') as f:
+        print(f"Loading {str(name)} from ~/obj/{str(name)}.pkl")
         return pickle.load(f)
