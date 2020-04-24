@@ -17,18 +17,21 @@ $ mkdir models
 
 - Under **Annotations**, download:
   - 2014 Train/Val annotations [241MB]
+  
   By completion, the subdirectory `data/annotations/` should contain 5 files: `captions_train2014.json`, `captions_val2014.json`, `instanes_train2014.json` and `instances_val2014.json`.
 
 - Under **Images**, download:
   - 2014 Train images [13GB]
   - 2014 Val images [6GB]
+  
   By completion, the subdirectory `data/images/` should contain 2 folders, `train2014` and `val2014`.
 
 3. Download folder containing pretained model (https://drive.google.com/open?id=1WLuLVc_57UgunkJmtlW78AeVZGWxVPEy). This model is trained on 4,625 COCO images with human figures as center of interest, using a balanced clean dataset and cross-entropy loss. Move the folders into the repo's main directory. This step is only necessary if intended to use pre-trained model.
 
-Download and unzip
+- Download and unzip:
   - Gender_Neutral_Captioning_model
-By completion, the subdirectory `Gender_Neutral_Captioning_model` should contain 3 files, `training_image_ids.pkl`, `vocab.pkl` and `best-model.pkl`.
+  
+  By completion, the subdirectory `Gender_Neutral_Captioning_model` should contain 3 files, `training_image_ids.pkl`, `vocab.pkl` and `best-model.pkl`.
 
 ## Train and/or Run model
 The end-to-end process of our project can be reproduced via our Gender_Neutral_Captioning notebook. From the directory of the repo, run
