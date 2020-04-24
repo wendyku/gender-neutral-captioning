@@ -5,7 +5,7 @@ import json
 import nltk
 import numpy as np
 import random
-from utils import agreement_score, export_csv, save_obj, load_obj
+from src.utils import agreement_score, export_csv, save_obj, load_obj
 from sklearn.model_selection import StratifiedShuffleSplit
 
 def get_activity_list(save_file = False):

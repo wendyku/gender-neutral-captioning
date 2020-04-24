@@ -6,9 +6,9 @@ from torchvision import transforms
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
 from PIL import Image
-from data_utils import get_training_indices
-from utils import load_obj
-from Vocabulary import Vocabulary
+from src.data_utils import get_training_indices
+from src.utils import load_obj
+from src.Vocabulary import Vocabulary
 import sys
 import glob
 
@@ -22,6 +22,7 @@ class MyDataset(Dataset):
         
         self.mode = mode
         self.image_folder_path = image_folder_path
+        self.batch_size = batch_size
         
         # Get pre-processed objects
         all_captions_dict = load_obj('captions_dict')

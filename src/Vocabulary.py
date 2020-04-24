@@ -1,7 +1,7 @@
 import nltk
 import pickle
 from collections import Counter
-from utils import save_obj
+from src.utils import save_obj
 
 class Vocabulary(object):
     

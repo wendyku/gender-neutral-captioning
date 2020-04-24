@@ -9,13 +9,12 @@ import time
 from torchvision import transforms
 from PIL import Image
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
-from dataset import MyDataset
-from model import EncoderCNN, DecoderRNN
-from data_utils import get_gender_nouns, get_test_indices
+from src.dataset import MyDataset
+from src.model import EncoderCNN, DecoderRNN
+from src.data_utils import get_gender_nouns, get_test_indices
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
-from utils import load_obj
+from src.utils import load_obj
 import math
-import warnings
 import pickle
 import random
 
