@@ -58,11 +58,9 @@ The notebook consists of 4 major parts:
 - Part IV. Evaluate Model Performance
 
 Note:
-1. Each section can be run independently. To run an individual section, click the cell in the section and hit Cmd + enter. Alternatively, click the cell in the section and select Cell-> Run Cell from the top navigation bar.
+1. Each section can be run independently.
+- To run an individual section, click the cell in the section and hit Cmd + enter. Alternatively, select Cell-> Run Cell from the top navigation bar.
 
 2. All sections other than Part IIIb requires a full download of the COCO 2014 Training and Validation dataset, in the structure specified above.
 
-
-
-
-Happy captioning!
+## Happy captioning!
