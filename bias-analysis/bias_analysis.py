@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from PIL import Image
+# from PIL import Image
 import itertools, random
 import glob,os, json
 import random,shutil
@@ -58,28 +58,33 @@ def get_traincaptions(ids, n_samples):
     print("Getting samples: ",n_samples, "nos.")
     
     train_set = [id for id in random.sample(ids, n_samples)]
-        
-    with open('captions_val2014.json') as file:
+#     print(train_set[:5])
+    with open('captions_train2014.json') as file:
         coco_data = json.load(file)
     for item in coco_data['images']:
-        if len(filenames) == len(train_set):
+        if len(filenames) == n_samples:
+            
             break
         if item['id'] in train_set:
+            
             filenames[item['id']] = item['file_name']
     
     for item in coco_data['annotations']:
-        if len(captions)==len(train_set):
+        if len(captions)==n_samples:
+            
             break
         if item['image_id'] in train_set:
+            
             filename = filenames[item['image_id']]
             if filename in captions:
                 captions[filename] += [item['caption']]
             else:
                 captions[filename] = [item['caption']]
-    for image in captions.keys():
-        image = "val2014/" + image 
-        shutil.copy(image, target_folder)
-    print("Copied sampled images to {}".format(target_folder))
+    print(len(captions))
+    # for image in captions.keys():
+    #     image = "train2014/" + image 
+    #     shutil.copy(image, target_folder)
+    # print("Copied sampled images to {}".format(target_folder))
     return captions,train_set
     
 def get_tag_dicts(get_tags,all_captions):
@@ -140,6 +145,7 @@ def counts():
     all_count = {}
     pro_all_count = {}    
     for item1 in gender_count:
+        
         all_count[item1] = {each[0]:each[1] for each in gender_count[item1]}
     for item2 in pronoun_count:
         pro_all_count[item2]= {each[0]:each[1] for each in pronoun_count[item2]}
@@ -168,7 +174,7 @@ def split_by_gender(all_count):
                 binary_dict[nn][key2] += value2
             except: binary_dict[nn][key2] = value2
 
-    return all_count
+    return binary_dict
 
 
 
@@ -177,6 +183,7 @@ def bias(gender1 = 'man',gender2 = 'woman'):
     # data : gender nouns or pronouns : all_count or pro_all_count
 #     data = all_count.copy() if gender in gender_nouns else pro_all_count.copy()
     counts()
+    
     data = all_count.copy()
     
     dictionary = set([a for key,values in data.items() for a in values if key==gender1 or key==gender2])    
