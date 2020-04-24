@@ -18,11 +18,11 @@ Main dependencies:
 - matplotlib
 - json
 
-2. Download this repository locally. Create a subdirectory `model`, all trained models will be saved in this subdirectory.
+2. Clone this repository locally. Create a subdirectory `model`, all trained models will be saved in this subdirectory.
 ```
 $ mkdir models
 ```
-3. Download the following data from the [COCO website](http://cocodataset.org/#download) into a subdirectory `data` located inside this project's directory. Move the folders into the repo's subdirectory `data`. This step is necessary only if intended to train a model or evaluate model results using COCO dataset.
+3. Download the following data from the [COCO website](http://cocodataset.org/#download) into a subdirectory `data` located inside this project's directory. Move the folders into the repo's subdirectory `data`. *This step is necessary only if intended to train a model or evaluate model results using COCO dataset.*
 
 - Under **Annotations**, download:
   - 2014 Train/Val annotations [241MB]
@@ -35,7 +35,7 @@ $ mkdir models
   
   By completion, the subdirectory `data/images/` should contain 2 folders, `train2014` and `val2014`.
 
-3. [Download folder containing pretained model.](https://drive.google.com/open?id=1WLuLVc_57UgunkJmtlW78AeVZGWxVPEy) This model is trained on 4,625 COCO images with human figures as center of interest, using a balanced clean dataset and cross-entropy loss. Move the folders into the repo's main directory. This step is only necessary if intended to use pre-trained model.
+4. [Download folder containing pretained model.](https://drive.google.com/open?id=1WLuLVc_57UgunkJmtlW78AeVZGWxVPEy) This model is trained on 4,625 COCO images with human figures as center of interest, using a balanced clean dataset and cross-entropy loss. Move the folders into the repo's main directory. *This step is only necessary if intended to use pre-trained model.*
 
 - Download and unzip:
   - Gender_Neutral_Captioning_model
@@ -48,18 +48,18 @@ The end-to-end process of our project can be reproduced via our Gender_Neutral_C
 $ jupyter notebook Gender_Neutral_Captioning.ipynb
 ```
 The notebook consists of 4 major parts:
-- Part I. Preparing Dataset for Training
-- Part II. Model Training
+- **Part I. Preparing Dataset for Training**
+- **Part II. Model Training**
   - a. Select method to generate training set
   - b. Train CNN+ LSTM model
-- Part III. Predict on test images
+- **Part III. Predict on test images**
   - a. Predict on human images in the COCO dataset
   - b. Predict on any images
-- Part IV. Evaluate Model Performance
+- **Part IV. Evaluate Model Performance**
 
 Note:
 1. Each section can be run independently.
-- To run an individual section, click the cell in the section and hit Cmd + enter. Alternatively, select Cell-> Run Cell from the top navigation bar.
+- To run an individual section, click the cell in the section and hit Cmd + enter.
 
 2. All sections other than Part IIIb requires a full download of the COCO 2014 Training and Validation dataset, in the structure specified above.
 
