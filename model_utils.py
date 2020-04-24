@@ -671,7 +671,10 @@ def predict_caption(image_id = "", mode = "COCO"):
 
 
 
-def evaluate_model(sample_size,image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
+def predict_for_test_samples(sample_size,image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
+    
+    # Init Dict
+    test_pred_captions = dict()
     
     # Get the training image id paths
     if training_image_ids_path == '': # if not specified, assume it is the vocab pickle saved in object
@@ -683,70 +686,16 @@ def evaluate_model(sample_size,image_folder_path, vocab_path = '', model_path = 
     # Get test image ids
     test_image_ids = get_test_indices(sample_size, training_image_ids, mode = mode)
 
-
-
-
-def predict_capts(test_image_ids, vocab_path = '', model_path = '',\
-                 embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
-    # Get model
-    if model_path == '': # if not specified, assume it is best model saved in models
-        model_path = './models/best-model.pkl'
-    if torch.cuda.is_available() == True:
-        checkpoint = torch.load('./models/best-model.pkl')
-    else:
-        checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
-    
-    # Get the vocabulary and its size
-    if vocab_path == '': # if not specified, assume it is the vocab pickle saved in object
-        vocab = load_obj('vocab')
-    else:
-        with open(vocab_path, 'rb') as f:
-            vocab = pickle.load(f)
-    vocab_size = len(vocab)
-  
-    # convert image
-    transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.RandomCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)),
-        ])
-    
-
-    # Initialize the encoder and decoder, and set each to inference mode
-    encoder = EncoderCNN(embed_size)
-    encoder.eval()
-    decoder = DecoderRNN(embed_size, hidden_size, vocab_size)
-    decoder.eval()
-
-    # Load the pre-trained weights
-    encoder.load_state_dict(checkpoint['encoder'])
-    decoder.load_state_dict(checkpoint['decoder'])
-
-    predicted_capts=dict()
-
-    test_loader = load_data(test_image_ids,\
-                            image_folder_path, mode = 'test')
-    
-
     for test_image_id in test_image_ids:
-        ##Get the image path from the image_id
-        original_image, image = next(iter(test_loader))
-        
-        transformed_image = transform(image)
-        transformed_image_plot = np.squeeze(transformed_image.numpy())\
-                    .transpose((1, 2, 0))
-        features = encoder(transformed_image).unsqueeze(1)
-        output = decoder.sample_beam_search(features)
-        sentences = clean_sentence(output, vocab)
-        ##add sentences to predicted image captions
-        predicted_captions['test_image_id']=sentences
+        captions = predict_from_COCO(image_folder_path, vocab_path = vocab_path, model_path = model_path, training_image_ids_path = training_image_ids_path,\
+             mode = 'balanced_clean', test_image_id = test_image_id, is_print = False)
+        test_pred_captions[test_image_id] = captions
 
-    return predicted_captions
+    return test_pred_captions
 
 
-def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
+
+def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean', test_image_id = '', is_print = True):
 
     sample_size = 1
     
@@ -776,23 +725,27 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
         with open(training_image_ids_path, 'rb') as f:
             training_image_ids = pickle.load(f)
     
+    
     test_image_ids = get_test_indices(sample_size, training_image_ids, mode = mode)
     image_id = list(test_image_ids.keys())[0]
+    if is_print == False:
+        test_image_ids[test_image_id] = test_image_ids.pop(image_id)
     test_loader = load_data(test_image_ids.keys(), image_folder_path, mode = 'test', vocab_file = vocab)
     original_image, image = next(iter(test_loader))
-    transformed_image = image.numpy()
-    transformed_image = np.squeeze(transformed_image)
-    print(transformed_image.shape, np.squeeze(original_image).shape)
-    transformed_image = transformed_image.transpose((1, 2, 0))
     
-    # Print sample image, before and after pre-processing
-    print(f'\nTest_image_id: {image_id}')
-    plt.imshow(np.squeeze(original_image))
-    plt.title('Test image- original')
-    plt.show()
-    plt.imshow(transformed_image)
-    plt.title('Test image- transformed')
-    plt.show()
+    if is_print == True:
+        transformed_image = image.numpy()
+        transformed_image = np.squeeze(transformed_image)
+        transformed_image = transformed_image.transpose((1, 2, 0))
+
+        # Print sample image, before and after pre-processing
+        print(f'\nTest_image_id: {image_id}')
+        plt.imshow(np.squeeze(original_image))
+        plt.title('Test image- original')
+        plt.show()
+        plt.imshow(transformed_image)
+        plt.title('Test image- transformed')
+        plt.show()
 
     # Initialize the encoder and decoder, and set each to inference mode
     encoder = EncoderCNN(embed_size)
@@ -807,12 +760,16 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
     features = encoder(image).unsqueeze(1)
     output = decoder.sample_beam_search(features)
     sentences = clean_sentence(output, vocab)
-    print('Predicted caption: \n')
-    for sentence in set(sentences):
-        print(f'{sentence}')
-        
-    original_captions = test_image_ids[image_id]
-    print('\n\nOriginal captions labelled by human annotators: \n')
-    for caption in set(original_captions):
-        print(caption)
+    
+    if is_print == True:
+        print('Predicted caption: \n')
+        for sentence in set(sentences):
+            print(f'{sentence}')
+            
+        original_captions = test_image_ids[image_id]
+        print('\n\nOriginal captions labelled by human annotators: \n')
+        for caption in set(original_captions):
+            print(caption)
+    else:
+        return [s for s in set(sentences)]
  
