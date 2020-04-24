@@ -39,14 +39,14 @@ def confusion_matrix(test_pred_captions):
 
         ##Construct conf matrix
         if sum(any(word in nltk.word_tokenize(caption) for word in male_tags)\
-            for caption in img_capts)>1:
+            for caption in img_capts)>= 1:
             pred='male'
         elif sum(any(word in nltk.word_tokenize(caption) for word in female_tags)\
-            for caption in img_capts)>1:
+            for caption in img_capts)>= 1:
             pred='female'
         else:
             pred='neutral'
-
+        print(gt, pred)
         if gt=='male':
             if pred==gt:
                 conf_matrix[0][0]+=1

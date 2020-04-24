@@ -619,58 +619,6 @@ def clean_sentence(word_idx_list, vocab):
         sentences.append(sentence)
     return sentences
 
-def get_prediction(data_loader, encoder, decoder, vocab):
-    """Loop over images in a dataset and print model's top three predicted 
-    captions using beam search."""
-    orig_image, image = next(iter(data_loader))
-    plt.imshow(np.squeeze(orig_image))
-    plt.title("Sample Image")
-    plt.show()
-    if torch.cuda.is_available():
-        image = image.cuda()
-    features = encoder(image).unsqueeze(1)
-
-    print ("Top captions using beam search:")
-    outputs = decoder.sample_beam_search(features)
-    
-    # Print maximum the top 5 predictions
-    num_sents = min(len(outputs), 5)
-    for output in outputs[:num_sents]:
-        sentence = clean_sentence(output, vocab)
-        print (sentence)
-
-def predict_caption(image_id = "", mode = "COCO"):
-    
-    # Get model
-    if model_path == '': # if not specified, assume it is best model saved in models
-        model_path = './models/best-model.pkl'
-    if torch.cuda.is_available() == True:
-        checkpoint = torch.load(model_path)
-    else:
-        checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
-        #checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
-    print(f'Best model is loaded from {model_path} . . .')
-    
-    # Get the vocabulary and its size
-    if vocab_path != '': # if not specified, assume it is the vocab pickle saved in object
-        with open(vocab_path, 'rb') as f:
-            vocab = pickle.load(f)
-            print("Loaded vocab file of pretrained model")
-    else:
-        vocab = load_obj('vocab')
-    vocab_size = len(vocab)
-
-
-    transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.RandomCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)),
-        ])
-
-
-
 def predict_for_test_samples(sample_size,image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
     
     # Init Dict
@@ -688,14 +636,14 @@ def predict_for_test_samples(sample_size,image_folder_path, vocab_path = '', mod
 
     for test_image_id in test_image_ids:
         captions = predict_from_COCO(image_folder_path, vocab_path = vocab_path, model_path = model_path, training_image_ids_path = training_image_ids_path,\
-             mode = 'balanced_clean', test_image_id = test_image_id, is_print = False)
+              test_image_id = test_image_id, is_print = False, return_one = True)
         test_pred_captions[test_image_id] = captions
 
     return test_pred_captions
 
 
 
-def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean', test_image_id = '', is_print = True):
+def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_mode', test_image_id = '', is_print = True, return_one = False):
 
     sample_size = 1
     
@@ -770,6 +718,8 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
         print('\n\nOriginal captions labelled by human annotators: \n')
         for caption in set(original_captions):
             print(caption)
+    elif return_one == True:
+        return sentences[0]
     else:
         return [s for s in set(sentences)]
  

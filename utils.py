@@ -1,6 +1,7 @@
 import numpy as np
 import csv
 import pickle
+import nltk
 
 '''
 Agreement score calculated using distance between 5 predictions, with 1 being the best
@@ -57,3 +58,32 @@ def load_obj(name):
     with open('obj/' + str(name) + '.pkl', 'rb') as f:
         print(f"Loading {str(name)} from ~/obj/{str(name)}.pkl")
         return pickle.load(f)
+
+def caption_to_gender(caption):
+    # Load list
+    gender_nouns_lookup = load_obj("gender_nouns_lookup")
+    tokens = nltk.word_tokenize(caption)
+    c_female = 0 # count of gender nouns and gender-neutral nouns
+    c_male = 0
+    c_neutral = 0
+
+    # Evaluate annotator's noun used to describe humans
+    for t in tokens:
+        t = t.lower()
+        if t in gender_nouns_lookup['female']:
+            c_female += 1
+        elif t in gender_nouns_lookup['male']:
+            c_male += 1
+        elif t in gender_nouns_lookup['neutral']:
+            c_neutral += 1
+
+    # Only include image for training if more than one caption of the image mention human
+    # Conflicting gender mentions are also dropped, e.g. "a boy and a girl are on a beach"
+    if c_female > 0:
+        gender = 'female'
+    elif c_male > 0:
+        gender = 'male'
+    else:
+        gender = 'neutral'
+    
+    return gender
