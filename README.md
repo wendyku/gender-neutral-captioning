@@ -35,7 +35,7 @@ $ mkdir models
   
   By completion, the subdirectory `data/images/` should contain 2 folders, `train2014` and `val2014`.
 
-3. [Download folder containing pretained model.](https://drive.google.com/open?id=1WLuLVc_57UgunkJmtlW78AeVZGWxVPEy) This model is trained on 4,625 COCO images with human figures as center of interest, using a balanced clean dataset and cross-entropy loss. Move the folders into the repo's main directory. *This step is only necessary if intended to use pre-trained model.*
+4. [Download folder containing pretained model.](https://drive.google.com/open?id=1WLuLVc_57UgunkJmtlW78AeVZGWxVPEy) This model is trained on 4,625 COCO images with human figures as center of interest, using a balanced clean dataset and cross-entropy loss. Move the folders into the repo's main directory. *This step is only necessary if intended to use pre-trained model.*
 
 - Download and unzip:
   - Gender_Neutral_Captioning_model
