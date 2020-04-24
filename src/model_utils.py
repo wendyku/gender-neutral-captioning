@@ -760,7 +760,7 @@ def predict_from_image(image_path, vocab_path = '', model_path = '', embed_size 
     transform = transforms.Compose([
             transforms.Resize(256),
             transforms.RandomCrop(224),
-            transforms.RandomHorizontalFlip(),
+            #transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406),(0.229, 0.224, 0.225)),
         ])
@@ -798,7 +798,9 @@ def predict_from_image(image_path, vocab_path = '', model_path = '', embed_size 
         encoder.cuda()
         decoder.cuda()
         image = image.cuda()
-        
+    
+    image = image.unsqueeze(0)
+
     features = encoder(image).unsqueeze(1)
     output = decoder.sample_beam_search(features)
     sentences = clean_sentence(output, vocab)
