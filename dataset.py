@@ -41,7 +41,7 @@ class MyDataset(Dataset):
             self.vocab = vocab_file
             self.word2idx = self.vocab.word2idx
             self.idx2word = self.vocab.idx2word
-            print('Vocabulary successfully loaded')
+            #print('Vocabulary successfully loaded')
         else:
             self.vocab = load_obj("vocab")
             self.word2idx = self.vocab.word2idx

@@ -17,6 +17,7 @@ from utils import load_obj
 import math
 import warnings
 import pickle
+import random
 
 # Frequency of printing batch loss while training/validating. 
 print_interval = 1000
@@ -620,7 +621,7 @@ def clean_sentence(word_idx_list, vocab):
     return sentences
 
 def predict_for_test_samples(sample_size,image_folder_path, vocab_path = '', model_path = '', training_image_ids_path = '', embed_size = 256, hidden_size = 512, mode = 'balanced_clean'):
-    
+    random.seed(123)
     # Init Dict
     test_pred_captions = dict()
     
@@ -655,13 +656,13 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
     else:
         checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
         #checkpoint = torch.load('./models/best-model.pkl', map_location='cpu')
-    print(f'Best model is loaded from {model_path} . . .')
+    #print(f'Best model is loaded from {model_path} . . .')
     
     # Get the vocabulary and its size
     if vocab_path != '': # if not specified, assume it is the vocab pickle saved in object
         with open(vocab_path, 'rb') as f:
             vocab = pickle.load(f)
-            print("Loaded vocab file of pretrained model")
+            #print("Loaded vocab file of pretrained model")
     else:
         vocab = load_obj('vocab')
     vocab_size = len(vocab)
@@ -685,6 +686,7 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
         transformed_image = image.numpy()
         transformed_image = np.squeeze(transformed_image)
         transformed_image = transformed_image.transpose((1, 2, 0))
+        np.clip(transformed_image, 0, 1)
 
         # Print sample image, before and after pre-processing
         print(f'\nTest_image_id: {image_id}')
@@ -705,6 +707,12 @@ def predict_from_COCO(image_folder_path, vocab_path = '', model_path = '', train
     encoder.load_state_dict(checkpoint['encoder'])
     decoder.load_state_dict(checkpoint['decoder'])
 
+    # Move models to GPU if CUDA is available.
+    if torch.cuda.is_available():
+        encoder.cuda()
+        decoder.cuda()
+        image = image.cuda()
+        
     features = encoder(image).unsqueeze(1)
     output = decoder.sample_beam_search(features)
     sentences = clean_sentence(output, vocab)

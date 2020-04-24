@@ -41,22 +41,22 @@ def export_csv(filepath, data):
     with open(filepath, 'w') as f:
         writer = csv.writer(f)
         writer.writerow(data)
-    print(f"saved in {filepath}")
+    #print(f"saved in {filepath}")
 
 def import_csv(filepath):
     with open('file.csv', newline='') as f:
         reader = csv.reader(f)
-    print(f"Loading {filepath}")
+    #print(f"Loading {filepath}")
     return list(reader)
 
 def save_obj(obj, name):
     with open('obj/'+ str(name) + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
-    print(f"{name} saved  as ~/obj/{name}.pkl")
+    #print(f"{name} saved  as ~/obj/{name}.pkl")
 
 def load_obj(name):
     with open('obj/' + str(name) + '.pkl', 'rb') as f:
-        print(f"Loading {str(name)} from ~/obj/{str(name)}.pkl")
+        #print(f"Loading {str(name)} from ~/obj/{str(name)}.pkl")
         return pickle.load(f)
 
 def caption_to_gender(caption):
