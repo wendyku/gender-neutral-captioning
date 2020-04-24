@@ -3,7 +3,7 @@ from biasanalysis.amp_utils import *
 from biasanalysis.bias_analysis import *
 from utils import *
 
-def return_bias(train_ids,pred_captions_dict):
+def return_biasamp(train_ids,pred_captions_dict):
 
 	# loading training captions
 	train_captions_dict = load_obj('captions_dict')
@@ -16,9 +16,12 @@ def return_bias(train_ids,pred_captions_dict):
 	
 	return bias_amp
 
-train_captions_dict = load_obj('captions_dict')
+def return_bias(captions, gender='man'):
+	top_n_items(pos='noun', all_captions=train_captions)
+  	
+	train_dict_man, train_dict_woman = bias()
 
-train_captions = [caption for id in list(train_captions_dict.keys())[:100] for caption in train_captions_dict[id]]
+	train_dict_man = {key:val for key,val in train_dict_man.items() if val>0.5 and val!=1}	
+	train_dict_woman = {key:val for key,val in train_dict_woman.items() if val>0.5 and val!=1}	
+	return train_dict_man if gender=='man' else train_dict_woman
 
-# return_bias([180521, 561629],{1005:['driving again car man'],3005:['woman being sassy glass','man holding plate','man holding plate','man holding plate']})
-return_bias([180521, 561629],{1005:train_captions[:20],3005:train_captions[:20]})
