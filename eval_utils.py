@@ -29,21 +29,13 @@ def confusion_matrix(test_pred_captions):
     ##Initialize the confusion matrix
     conf_matrix=[[0]*3]*3
 
-    # Process generated captions into two lists
-    image_ids = []
-    generated_captions = []
-    for image_id, captions in test_pred_captions.items():
-        for caption in generated_captions:
-            image_ids.append(image_id)
-            captions.append(caption)
-
-    for i, test_image_id in enumerate(image_ids):
+    for test_image_id in list(test_pred_captions.keys()):
         ##Get the ground truth tag for the test image
         gt = im_gender_summary[test_image_id]['pred_gt']
 
         ##Get the predicted gender tag for the test image
         #get predicted captions first
-        img_capts = captions[i]
+        img_capts = test_pred_captions[test_image_id]
 
         ##Construct conf matrix
         if sum(any(word in nltk.word_tokenize(caption) for word in male_tags)\
